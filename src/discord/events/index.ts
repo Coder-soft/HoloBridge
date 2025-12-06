@@ -198,13 +198,15 @@ export function registerDiscordEvents(): void {
     discordClient.on('messagePollVoteRemove', (pollAnswer, userId) => {
         const poll = pollAnswer.poll;
         const message = poll?.message;
+        if (!message) return; // Skip if message is not available
+        
         broadcastEvent({
             event: 'messagePollVoteRemove',
-            guildId: message?.guildId ?? null,
+            guildId: message.guildId ?? null,
             data: {
-                messageId: message?.id ?? '',
-                channelId: message?.channelId ?? '',
-                guildId: message?.guildId ?? null,
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId ?? null,
                 userId,
                 answerId: pollAnswer.id,
             },
