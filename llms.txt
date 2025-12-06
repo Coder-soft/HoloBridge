@@ -1,0 +1,135 @@
+# Discord Web Bridge
+
+> A type-safe TypeScript bridge between websites and Discord bots
+
+## Overview
+
+Discord Web Bridge provides a REST API and WebSocket interface for full Discord bot capabilities. Built with TypeScript, Express, Socket.IO, and Discord.js.
+
+## Key Features
+
+- REST API for all Discord operations
+- Real-time WebSocket event streaming via Socket.IO
+- Type-safe with Zod validation
+- Full Discord.js coverage
+
+## API Endpoints
+
+Base URL: `http://localhost:3000`
+Authentication: `X-API-Key` header required
+
+### Guilds
+- GET /api/guilds - List all guilds
+- GET /api/guilds/:id - Get guild details
+- GET /api/guilds/:id/channels - Get guild channels
+- GET /api/guilds/:id/roles - Get guild roles
+- GET /api/guilds/:id/members - List members
+- GET /api/guilds/:id/emojis - Get emojis
+- GET /api/guilds/:id/bans - Get bans
+- GET /api/guilds/:id/invites - Get invites
+
+### Channels
+- GET /api/channels/:id - Get channel
+- POST /api/guilds/:guildId/channels - Create channel
+- PATCH /api/channels/:id - Edit channel
+- DELETE /api/channels/:id - Delete channel
+- POST /api/channels/:id/threads - Create thread
+- GET /api/channels/:id/threads - Get threads
+- POST /api/channels/:id/clone - Clone channel
+- GET /api/channels/:id/webhooks - Get webhooks
+
+### Messages
+- GET /api/channels/:id/messages - Get messages
+- GET /api/channels/:id/messages/pinned - Get pinned messages
+- GET /api/channels/:id/messages/:msgId - Get specific message
+- POST /api/channels/:id/messages - Send message
+- PATCH /api/channels/:id/messages/:msgId - Edit message
+- DELETE /api/channels/:id/messages/:msgId - Delete message
+- POST /api/channels/:id/messages/bulk-delete - Bulk delete
+- POST /api/channels/:id/messages/:msgId/reactions/:emoji - Add reaction
+- DELETE /api/channels/:id/messages/:msgId/reactions/:emoji - Remove reaction
+- POST /api/channels/:id/messages/:msgId/pin - Pin message
+- DELETE /api/channels/:id/messages/:msgId/pin - Unpin message
+- POST /api/channels/:id/messages/:msgId/crosspost - Crosspost message
+
+### Members
+- GET /api/guilds/:id/members - List members
+- GET /api/guilds/:id/members/search?q=query - Search members
+- GET /api/guilds/:id/members/:userId - Get member
+- POST /api/guilds/:id/members/:userId/kick - Kick member
+- POST /api/guilds/:id/members/:userId/ban - Ban member
+- DELETE /api/guilds/:id/bans/:userId - Unban user
+- PATCH /api/guilds/:id/members/:userId/nickname - Set nickname
+- PATCH /api/guilds/:id/members/:userId/roles - Modify roles
+- POST /api/guilds/:id/members/:userId/timeout - Timeout member
+- DELETE /api/guilds/:id/members/:userId/timeout - Remove timeout
+
+### Roles
+- GET /api/guilds/:id/roles - List roles
+- GET /api/guilds/:id/roles/search?name=name - Search roles
+- GET /api/guilds/:id/roles/:roleId - Get role
+- POST /api/guilds/:id/roles - Create role
+- PATCH /api/guilds/:id/roles/:roleId - Edit role
+- DELETE /api/guilds/:id/roles/:roleId - Delete role
+- GET /api/guilds/:id/roles/:roleId/members - Get role members
+- PATCH /api/guilds/:id/roles/:roleId/permissions - Set permissions
+
+## WebSocket Events
+
+Connect via Socket.IO with authentication:
+
+```javascript
+const socket = io('http://localhost:3000', {
+    auth: { apiKey: 'your_key' }
+});
+
+socket.emit('subscribe', { guildIds: ['123456789'] });
+
+socket.on('discord', (event) => {
+    console.log(event.event, event.data);
+});
+```
+
+### Available Events
+- messageCreate, messageUpdate, messageDelete, messageDeleteBulk
+- messageReactionAdd, messageReactionRemove
+- guildMemberAdd, guildMemberRemove, guildMemberUpdate
+- presenceUpdate, userUpdate
+- channelCreate, channelUpdate, channelDelete
+- threadCreate, threadUpdate, threadDelete
+- roleCreate, roleUpdate, roleDelete
+- voiceStateUpdate
+- guildBanAdd, guildBanRemove
+- typingStart
+- inviteCreate, inviteDelete
+
+## Configuration
+
+Environment variables:
+- DISCORD_TOKEN - Discord bot token (required)
+- API_KEY - API authentication key (required)
+- PORT - Server port (default: 3000)
+- DEBUG - Enable debug logging (default: false)
+
+## Quick Start
+
+```bash
+npm install
+cp .env.example .env
+# Edit .env with your values
+npm run dev
+```
+
+## File Structure
+
+- src/index.ts - Entry point
+- src/api/server.ts - Express server setup
+- src/api/routes/ - REST API routes
+- src/api/websocket/ - WebSocket event handlers
+- src/discord/ - Discord.js client and services
+- src/types/ - TypeScript type definitions
+- docs/ - HTML documentation
+
+## License
+
+MIT
