@@ -3,7 +3,7 @@ import { registerDiscordEvents } from './discord/events/index.js';
 import { startApiServer } from './api/server.js';
 
 async function main(): Promise<void> {
-    console.log('🚀 Starting Discord Web Bridge...\n');
+    console.log('🚀 Starting Holo Bridge...\n');
 
     try {
         // Login to Discord
@@ -20,9 +20,9 @@ async function main(): Promise<void> {
         await startApiServer();
         console.log('');
 
-        console.log('✨ Discord Web Bridge is ready!\n');
+        console.log('✨ Holo Bridge is ready!\n');
     } catch (error) {
-        console.error('❌ Failed to start Discord Web Bridge:', error);
+        console.error('❌ Failed to start Holo Bridge:', error);
         process.exit(1);
     }
 }

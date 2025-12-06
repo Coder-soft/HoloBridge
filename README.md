@@ -1,4 +1,4 @@
-# Discord Web Bridge
+# Holo Bridge
 
 A type-safe TypeScript bridge between websites and Discord bots. Provides a REST API and WebSocket interface for full Discord bot capabilities.
 

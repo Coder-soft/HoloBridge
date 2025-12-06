@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Events - Discord Web Bridge</title>
-    <meta name="description" content="Real-time Discord event streaming documentation for Discord Web Bridge.">
+    <title>WebSocket Events - Holo Bridge</title>
+    <meta name="description" content="Real-time Discord event streaming documentation for Holo Bridge.">
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <header>
         <div class="container header-content">
-            <a href="index.html" class="logo">Discord Web Bridge</a>
+            <a href="index.html" class="logo">Holo Bridge</a>
             <nav>
                 <a href="index.html">Home</a>
                 <a href="getting-started.html">Getting Started</a>
@@ -46,7 +46,7 @@
 
             <div class="content">
                 <h1>WebSocket Events</h1>
-                <p>Discord Web Bridge provides real-time event streaming via Socket.IO. Subscribe to guilds and receive
+                <p>Holo Bridge provides real-time event streaming via Socket.IO. Subscribe to guilds and receive
                     Discord events as they happen.</p>
 
                 <section id="connection">
@@ -61,7 +61,7 @@ const socket = io('http://localhost:3000', {
 });
 
 socket.on('connect', () => {
-    console.log('Connected to Discord Web Bridge');
+    console.log('Connected to Holo Bridge');
 });
 
 socket.on('connect_error', (error) => {
@@ -187,7 +187,7 @@ socket.on('unsubscribed', (data) => {
         "bot": false
     },
     "content": "Hello, world!",
-    "createdAt": "2024-01-01T12:00:00.000Z",
+    "createdAt": "2025-01-01T12:00:00.000Z",
     "editedAt": null,
     "embeds": [],
     "attachments": [],
@@ -242,7 +242,7 @@ socket.on('unsubscribed', (data) => {
     "nickname": "Nickname",
     "avatar": null,
     "displayAvatarUrl": "https://cdn.discordapp.com/...",
-    "joinedAt": "2024-01-01T00:00:00.000Z",
+    "joinedAt": "2025-01-01T00:00:00.000Z",
     "roles": ["111222333", "444555666"],
     "pending": false,
     "communicationDisabledUntil": null,
@@ -516,7 +516,7 @@ socket.on('disconnect', (reason) => console.log('Disconnected:', reason));</code
 
     <footer>
         <div class="container">
-            <p>Discord Web Bridge &copy; 2024 - MIT License</p>
+            <p>Holo Bridge &copy; 2025 - MIT License</p>
         </div>
     </footer>
 
