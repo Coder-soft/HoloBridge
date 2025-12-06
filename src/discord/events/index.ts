@@ -724,7 +724,7 @@ export function registerDiscordEvents(): void {
             guildId: invite.guild?.id ?? null,
             data: {
                 code: invite.code,
-                channelId: invite.channel?.id ?? '',
+                channelId: invite.channel?.id ?? null,
                 guildId: invite.guild?.id ?? null,
             },
         });
