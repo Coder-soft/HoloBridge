@@ -37,6 +37,7 @@
                     <li><a href="#message-events">Message Events</a></li>
                     <li><a href="#member-events">Member Events</a></li>
                     <li><a href="#channel-events">Channel Events</a></li>
+                    <li><a href="#thread-events">Thread Events</a></li>
                     <li><a href="#role-events">Role Events</a></li>
                     <li><a href="#guild-events">Guild Events</a></li>
                     <li><a href="#voice-events">Voice Events</a></li>
@@ -163,12 +164,12 @@ socket.on('unsubscribed', (data) => {
                             <tr>
                                 <td><code>messageReactionAdd</code></td>
                                 <td>Reaction added</td>
-                                <td><code>{ messageId, channelId, userId, reaction }</code></td>
+                                <td><code>{ messageId, channelId, guildId, userId, reaction }</code></td>
                             </tr>
                             <tr>
                                 <td><code>messageReactionRemove</code></td>
                                 <td>Reaction removed</td>
-                                <td><code>{ messageId, channelId, userId, emoji }</code></td>
+                                <td><code>{ messageId, channelId, guildId, userId, emoji }</code></td>
                             </tr>
                         </tbody>
                     </table>
@@ -184,15 +185,42 @@ socket.on('unsubscribed', (data) => {
         "discriminator": "0",
         "globalName": "Display Name",
         "avatar": "abc123",
-        "bot": false
+        "avatarUrl": "https://cdn.discordapp.com/...",
+        "bot": false,
+        "system": false,
+        "createdAt": "2020-01-01T00:00:00.000Z"
+    },
+    "member": {
+        "id": "444555666",
+        "displayName": "Display Name",
+        "nickname": "Nick",
+        "avatar": null,
+        "displayAvatarUrl": "https://cdn.discordapp.com/...",
+        "joinedAt": "2025-01-01T00:00:00.000Z",
+        "premiumSince": null,
+        "roles": ["111222333"],
+        "pending": false,
+        "communicationDisabledUntil": null,
+        "permissions": ["SendMessages", "ViewChannel"]
     },
     "content": "Hello, world!",
+    "cleanContent": "Hello, world!",
     "createdAt": "2025-01-01T12:00:00.000Z",
     "editedAt": null,
     "embeds": [],
     "attachments": [],
     "reactions": [],
-    "pinned": false
+    "pinned": false,
+    "tts": false,
+    "type": 0,
+    "typeName": "0",
+    "replyTo": null,
+    "mentions": {
+        "users": [],
+        "roles": [],
+        "channels": [],
+        "everyone": false
+    }
 }</code></pre>
                 </section>
 
@@ -227,11 +255,6 @@ socket.on('unsubscribed', (data) => {
                                 <td>Presence changed</td>
                                 <td><code>{ old, new }</code></td>
                             </tr>
-                            <tr>
-                                <td><code>userUpdate</code></td>
-                                <td>User profile updated</td>
-                                <td>SerializedUser</td>
-                            </tr>
                         </tbody>
                     </table>
 
@@ -243,6 +266,7 @@ socket.on('unsubscribed', (data) => {
     "avatar": null,
     "displayAvatarUrl": "https://cdn.discordapp.com/...",
     "joinedAt": "2025-01-01T00:00:00.000Z",
+    "premiumSince": null,
     "roles": ["111222333", "444555666"],
     "pending": false,
     "communicationDisabledUntil": null,
@@ -277,15 +301,39 @@ socket.on('unsubscribed', (data) => {
                                 <td>Channel deleted</td>
                                 <td>SerializedChannel</td>
                             </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Channel Object</h3>
+                    <pre><code>{
+    "id": "987654321",
+    "name": "general",
+    "type": 0,
+    "typeName": "text",
+    "parentId": "123456789",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "position": 0,
+    "topic": "Welcome to general chat!",
+    "nsfw": false,
+    "rateLimitPerUser": 0
+}</code></pre>
+                </section>
+
+                <section id="thread-events">
+                    <h2>Thread Events</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td><code>channelPinsUpdate</code></td>
-                                <td>Pins updated</td>
-                                <td><code>{ channelId, lastPinTimestamp }</code></td>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
                             </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><code>threadCreate</code></td>
                                 <td>Thread created</td>
-                                <td>SerializedChannel</td>
+                                <td><code>{ thread, newlyCreated }</code></td>
                             </tr>
                             <tr>
                                 <td><code>threadUpdate</code></td>
@@ -295,15 +343,52 @@ socket.on('unsubscribed', (data) => {
                             <tr>
                                 <td><code>threadDelete</code></td>
                                 <td>Thread deleted</td>
-                                <td>SerializedChannel</td>
+                                <td><code>{ id, guildId, parentId, name, type }</code></td>
                             </tr>
                             <tr>
                                 <td><code>threadMembersUpdate</code></td>
                                 <td>Thread members changed</td>
-                                <td>Thread member info</td>
+                                <td><code>{ threadId, guildId, addedMembers, removedMemberIds, memberCount }</code></td>
                             </tr>
                         </tbody>
                     </table>
+
+                    <h3>Thread Create Example</h3>
+                    <pre><code>{
+    "thread": {
+        "id": "123456789",
+        "name": "Discussion Thread",
+        "type": 11,
+        "typeName": "public_thread",
+        "parentId": "987654321",
+        "createdAt": "2025-01-01T12:00:00.000Z"
+    },
+    "newlyCreated": true
+}</code></pre>
+
+                    <h3>Thread Delete Example</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "parentId": "987654321",
+    "name": "Old Thread",
+    "type": 11
+}</code></pre>
+
+                    <h3>Thread Members Update Example</h3>
+                    <pre><code>{
+    "threadId": "123456789",
+    "guildId": "111222333",
+    "addedMembers": [
+        {
+            "id": "444555666",
+            "threadId": "123456789",
+            "joinedAt": "2025-01-01T12:00:00.000Z"
+        }
+    ],
+    "removedMemberIds": ["777888999"],
+    "memberCount": 5
+}</code></pre>
                 </section>
 
                 <section id="role-events">
@@ -345,7 +430,11 @@ socket.on('unsubscribed', (data) => {
     "position": 5,
     "permissions": "8589934591",
     "managed": false,
-    "mentionable": true
+    "mentionable": true,
+    "icon": null,
+    "unicodeEmoji": null,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "memberCount": 10
 }</code></pre>
                 </section>
 
@@ -385,16 +474,6 @@ socket.on('unsubscribed', (data) => {
                                 <td>User unbanned</td>
                                 <td><code>{ guildId, user }</code></td>
                             </tr>
-                            <tr>
-                                <td><code>guildEmojisUpdate</code></td>
-                                <td>Emojis changed</td>
-                                <td>Emoji data</td>
-                            </tr>
-                            <tr>
-                                <td><code>guildIntegrationsUpdate</code></td>
-                                <td>Integrations changed</td>
-                                <td>Integration data</td>
-                            </tr>
                         </tbody>
                     </table>
                 </section>
@@ -431,7 +510,8 @@ socket.on('unsubscribed', (data) => {
     "selfMute": true,
     "selfVideo": false,
     "streaming": false,
-    "suppress": false
+    "suppress": false,
+    "requestToSpeakTimestamp": null
 }</code></pre>
                 </section>
 
@@ -450,21 +530,6 @@ socket.on('unsubscribed', (data) => {
                                 <td><code>typingStart</code></td>
                                 <td>User started typing</td>
                                 <td><code>{ channelId, userId, timestamp, member }</code></td>
-                            </tr>
-                            <tr>
-                                <td><code>inviteCreate</code></td>
-                                <td>Invite created</td>
-                                <td>Invite data</td>
-                            </tr>
-                            <tr>
-                                <td><code>inviteDelete</code></td>
-                                <td>Invite deleted</td>
-                                <td>Invite data</td>
-                            </tr>
-                            <tr>
-                                <td><code>interactionCreate</code></td>
-                                <td>Interaction received</td>
-                                <td>Interaction data</td>
                             </tr>
                         </tbody>
                     </table>
@@ -499,11 +564,41 @@ socket.on('discord', (payload) => {
         case 'messageCreate':
             console.log(`[${payload.data.author.username}]: ${payload.data.content}`);
             break;
+        case 'messageUpdate':
+            console.log(`Message edited in ${payload.data.new.channelId}`);
+            break;
+        case 'messageDelete':
+            console.log(`Message ${payload.data.id} deleted`);
+            break;
+        case 'messageDeleteBulk':
+            console.log(`${payload.data.ids.length} messages deleted`);
+            break;
         case 'guildMemberAdd':
             console.log(`${payload.data.user.username} joined!`);
             break;
         case 'guildMemberRemove':
             console.log(`${payload.data.user.username} left!`);
+            break;
+        case 'threadCreate':
+            console.log(`Thread ${payload.data.thread.name} created`);
+            break;
+        case 'threadDelete':
+            console.log(`Thread ${payload.data.name} deleted`);
+            break;
+        case 'threadMembersUpdate':
+            console.log(`Thread ${payload.data.threadId} members updated`);
+            break;
+        case 'channelCreate':
+            console.log(`Channel ${payload.data.name} created`);
+            break;
+        case 'roleCreate':
+            console.log(`Role ${payload.data.name} created`);
+            break;
+        case 'voiceStateUpdate':
+            console.log(`Voice state updated for ${payload.data.new.userId}`);
+            break;
+        case 'typingStart':
+            console.log(`User ${payload.data.userId} is typing`);
             break;
     }
 });

@@ -178,6 +178,52 @@ export interface ChannelDeleteEvent {
     data: SerializedChannel;
 }
 
+export interface ThreadCreateEvent {
+    event: 'threadCreate';
+    guildId: string | null;
+    data: {
+        thread: SerializedChannel;
+        newlyCreated: boolean;
+    };
+}
+
+export interface ThreadUpdateEvent {
+    event: 'threadUpdate';
+    guildId: string | null;
+    data: {
+        old: SerializedChannel | null;
+        new: SerializedChannel;
+    };
+}
+
+export interface ThreadDeleteEvent {
+    event: 'threadDelete';
+    guildId: string | null;
+    data: {
+        id: string;
+        guildId: string | null;
+        parentId: string | null;
+        name: string | null;
+        type: number;
+    };
+}
+
+export interface ThreadMembersUpdateEvent {
+    event: 'threadMembersUpdate';
+    guildId: string | null;
+    data: {
+        threadId: string;
+        guildId: string;
+        addedMembers: Array<{
+            id: string;
+            threadId: string;
+            joinedAt: string;
+        }>;
+        removedMemberIds: string[];
+        memberCount: number;
+    };
+}
+
 export interface RoleCreateEvent {
     event: 'roleCreate';
     guildId: string;
@@ -283,6 +329,10 @@ export type DiscordEventPayload =
     | ChannelCreateEvent
     | ChannelUpdateEvent
     | ChannelDeleteEvent
+    | ThreadCreateEvent
+    | ThreadUpdateEvent
+    | ThreadDeleteEvent
+    | ThreadMembersUpdateEvent
     | RoleCreateEvent
     | RoleUpdateEvent
     | RoleDeleteEvent

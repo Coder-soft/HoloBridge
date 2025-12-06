@@ -215,6 +215,62 @@ export function registerDiscordEvents(): void {
         });
     });
 
+    // ========== THREAD EVENTS ==========
+
+    discordClient.on('threadCreate', (thread, newlyCreated) => {
+        broadcastEvent({
+            event: 'threadCreate',
+            guildId: thread.guildId,
+            data: {
+                thread: serializeChannel(thread),
+                newlyCreated,
+            },
+        });
+    });
+
+    discordClient.on('threadUpdate', (oldThread, newThread) => {
+        broadcastEvent({
+            event: 'threadUpdate',
+            guildId: newThread.guildId,
+            data: {
+                old: oldThread.partial ? null : serializeChannel(oldThread),
+                new: serializeChannel(newThread),
+            },
+        });
+    });
+
+    discordClient.on('threadDelete', (thread) => {
+        broadcastEvent({
+            event: 'threadDelete',
+            guildId: thread.guildId,
+            data: {
+                id: thread.id,
+                guildId: thread.guildId,
+                parentId: thread.parentId,
+                name: thread.name,
+                type: thread.type,
+            },
+        });
+    });
+
+    discordClient.on('threadMembersUpdate', (addedMembers, removedMembers, thread) => {
+        broadcastEvent({
+            event: 'threadMembersUpdate',
+            guildId: thread.guildId,
+            data: {
+                threadId: thread.id,
+                guildId: thread.guildId,
+                addedMembers: addedMembers.map((m) => ({
+                    id: m.id,
+                    threadId: m.thread?.id ?? thread.id,
+                    joinedAt: m.joinTimestamp ? new Date(m.joinTimestamp).toISOString() : new Date().toISOString(),
+                })),
+                removedMemberIds: removedMembers.map((m) => m.id),
+                memberCount: thread.memberCount ?? 0,
+            },
+        });
+    });
+
     // ========== ROLE EVENTS ==========
 
     discordClient.on('roleCreate', (role) => {
