@@ -214,3 +214,255 @@ export interface PaginatedResponse<T> {
     total?: number;
     hasMore: boolean;
 }
+
+// ============================================================================
+// Sticker Types
+// ============================================================================
+
+export interface SerializedSticker {
+    id: string;
+    name: string;
+    description: string | null;
+    packId: string | null;
+    type: number;
+    format: number;
+    formatName: string;
+    available: boolean;
+    guildId: string | null;
+    user: SerializedUser | null;
+    sortValue: number | null;
+    tags: string | null;
+    url: string;
+    createdAt: string;
+}
+
+// ============================================================================
+// Scheduled Event Types
+// ============================================================================
+
+export interface SerializedScheduledEvent {
+    id: string;
+    guildId: string;
+    channelId: string | null;
+    creatorId: string | null;
+    creator: SerializedUser | null;
+    name: string;
+    description: string | null;
+    scheduledStartTime: string;
+    scheduledEndTime: string | null;
+    privacyLevel: number;
+    status: number;
+    statusName: string;
+    entityType: number;
+    entityTypeName: string;
+    entityId: string | null;
+    entityMetadata: {
+        location: string | null;
+    } | null;
+    userCount: number | null;
+    image: string | null;
+    imageUrl: string | null;
+    createdAt: string;
+}
+
+// ============================================================================
+// Auto Moderation Types
+// ============================================================================
+
+export interface SerializedAutoModRule {
+    id: string;
+    guildId: string;
+    name: string;
+    creatorId: string;
+    eventType: number;
+    triggerType: number;
+    triggerTypeName: string;
+    triggerMetadata: {
+        keywordFilter?: string[];
+        regexPatterns?: string[];
+        presets?: number[];
+        allowList?: string[];
+        mentionTotalLimit?: number;
+        mentionRaidProtectionEnabled?: boolean;
+    };
+    actions: Array<{
+        type: number;
+        typeName: string;
+        metadata?: {
+            channelId?: string;
+            durationSeconds?: number;
+            customMessage?: string;
+        };
+    }>;
+    enabled: boolean;
+    exemptRoles: string[];
+    exemptChannels: string[];
+}
+
+export interface SerializedAutoModAction {
+    ruleId: string;
+    ruleTriggerType: number;
+    guildId: string;
+    userId: string;
+    channelId: string | null;
+    messageId: string | null;
+    alertSystemMessageId: string | null;
+    content: string;
+    matchedKeyword: string | null;
+    matchedContent: string | null;
+    action: {
+        type: number;
+        typeName: string;
+        metadata?: {
+            channelId?: string;
+            durationSeconds?: number;
+            customMessage?: string;
+        };
+    };
+}
+
+// ============================================================================
+// Stage Instance Types
+// ============================================================================
+
+export interface SerializedStageInstance {
+    id: string;
+    guildId: string;
+    channelId: string;
+    topic: string;
+    privacyLevel: number;
+    privacyLevelName: string;
+    guildScheduledEventId: string | null;
+    createdAt: string;
+}
+
+// ============================================================================
+// Invite Types
+// ============================================================================
+
+export interface SerializedInvite {
+    code: string;
+    guildId: string | null;
+    channelId: string | null;
+    inviter: SerializedUser | null;
+    targetUser: SerializedUser | null;
+    targetType: number | null;
+    uses: number | null;
+    maxUses: number | null;
+    maxAge: number | null;
+    temporary: boolean;
+    createdAt: string | null;
+    expiresAt: string | null;
+    url: string;
+}
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export interface SerializedAuditLogEntry {
+    id: string;
+    guildId: string;
+    actionType: number;
+    actionTypeName: string;
+    targetId: string | null;
+    executorId: string | null;
+    executor: SerializedUser | null;
+    reason: string | null;
+    changes: Array<{
+        key: string;
+        old: unknown;
+        new: unknown;
+    }>;
+    extra: unknown;
+    createdAt: string;
+}
+
+// ============================================================================
+// Interaction Types
+// ============================================================================
+
+export interface SerializedInteraction {
+    id: string;
+    type: number;
+    typeName: string;
+    guildId: string | null;
+    channelId: string | null;
+    user: SerializedUser;
+    member: SerializedMember | null;
+    token: string;
+    applicationId: string;
+    commandName: string | null;
+    commandId: string | null;
+    commandType: number | null;
+    customId: string | null;
+    componentType: number | null;
+    values: string[] | null;
+    targetId: string | null;
+    locale: string;
+    guildLocale: string | null;
+    createdAt: string;
+}
+
+// ============================================================================
+// Poll Types
+// ============================================================================
+
+export interface SerializedPoll {
+    question: string;
+    answers: Array<{
+        answerId: number;
+        text: string;
+        emoji: SerializedEmoji | null;
+    }>;
+    expiresAt: string | null;
+    allowMultiselect: boolean;
+    layoutType: number;
+    results: {
+        isFinalized: boolean;
+        answerCounts: Array<{
+            answerId: number;
+            count: number;
+            meVoted: boolean;
+        }>;
+    } | null;
+}
+
+// ============================================================================
+// Entitlement Types
+// ============================================================================
+
+export interface SerializedEntitlement {
+    id: string;
+    skuId: string;
+    userId: string | null;
+    guildId: string | null;
+    applicationId: string;
+    type: number;
+    typeName: string;
+    consumed: boolean;
+    startsAt: string | null;
+    endsAt: string | null;
+    createdAt: string;
+}
+
+// ============================================================================
+// Webhook Types
+// ============================================================================
+
+export interface SerializedWebhook {
+    id: string;
+    guildId: string | null;
+    channelId: string;
+    name: string | null;
+    type: number;
+    typeName: string;
+    avatar: string | null;
+    avatarUrl: string | null;
+    token: string | null;
+    owner: SerializedUser | null;
+    sourceGuild: { id: string; name: string; icon: string | null } | null;
+    sourceChannel: { id: string; name: string } | null;
+    url: string | null;
+    createdAt: string;
+}

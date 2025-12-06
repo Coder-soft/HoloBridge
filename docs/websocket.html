@@ -35,12 +35,22 @@
                 <h4>Events</h4>
                 <ul>
                     <li><a href="#message-events">Message Events</a></li>
+                    <li><a href="#reaction-events">Reaction Events</a></li>
+                    <li><a href="#poll-events">Poll Events</a></li>
                     <li><a href="#member-events">Member Events</a></li>
                     <li><a href="#channel-events">Channel Events</a></li>
                     <li><a href="#thread-events">Thread Events</a></li>
                     <li><a href="#role-events">Role Events</a></li>
                     <li><a href="#guild-events">Guild Events</a></li>
+                    <li><a href="#emoji-events">Emoji Events</a></li>
+                    <li><a href="#sticker-events">Sticker Events</a></li>
                     <li><a href="#voice-events">Voice Events</a></li>
+                    <li><a href="#stage-events">Stage Instance Events</a></li>
+                    <li><a href="#scheduled-events">Scheduled Events</a></li>
+                    <li><a href="#automod-events">AutoMod Events</a></li>
+                    <li><a href="#invite-events">Invite Events</a></li>
+                    <li><a href="#interaction-events">Interaction Events</a></li>
+                    <li><a href="#entitlement-events">Entitlement Events</a></li>
                     <li><a href="#other-events">Other Events</a></li>
                 </ul>
             </aside>
@@ -48,7 +58,7 @@
             <div class="content">
                 <h1>WebSocket Events</h1>
                 <p>Holo Bridge provides real-time event streaming via Socket.IO. Subscribe to guilds and receive
-                    Discord events as they happen.</p>
+                    Discord events as they happen. <strong>45+ event types are supported.</strong></p>
 
                 <section id="connection">
                     <h2>Connection</h2>
@@ -116,17 +126,6 @@ socket.on('unsubscribed', (data) => {
     console.log('Event:', payload.event);
     console.log('Guild:', payload.guildId);
     console.log('Data:', payload.data);
-    
-    // Handle specific events
-    switch (payload.event) {
-        case 'messageCreate':
-            handleNewMessage(payload.data);
-            break;
-        case 'guildMemberAdd':
-            handleMemberJoin(payload.data);
-            break;
-        // ... handle other events
-    }
 });</code></pre>
                 </section>
 
@@ -161,67 +160,68 @@ socket.on('unsubscribed', (data) => {
                                 <td>Multiple messages deleted</td>
                                 <td><code>{ ids, channelId, guildId }</code></td>
                             </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="reaction-events">
+                    <h2>Reaction Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             <tr>
                                 <td><code>messageReactionAdd</code></td>
-                                <td>Reaction added</td>
+                                <td>Reaction added to message</td>
                                 <td><code>{ messageId, channelId, guildId, userId, reaction }</code></td>
                             </tr>
                             <tr>
                                 <td><code>messageReactionRemove</code></td>
-                                <td>Reaction removed</td>
+                                <td>Reaction removed from message</td>
                                 <td><code>{ messageId, channelId, guildId, userId, emoji }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageReactionRemoveAll</code></td>
+                                <td>All reactions removed from message</td>
+                                <td><code>{ messageId, channelId, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageReactionRemoveEmoji</code></td>
+                                <td>All reactions of specific emoji removed</td>
+                                <td><code>{ messageId, channelId, guildId, emoji }</code></td>
                             </tr>
                         </tbody>
                     </table>
+                </section>
 
-                    <h3>Message Object</h3>
-                    <pre><code>{
-    "id": "123456789",
-    "channelId": "987654321",
-    "guildId": "111222333",
-    "author": {
-        "id": "444555666",
-        "username": "user",
-        "discriminator": "0",
-        "globalName": "Display Name",
-        "avatar": "abc123",
-        "avatarUrl": "https://cdn.discordapp.com/...",
-        "bot": false,
-        "system": false,
-        "createdAt": "2020-01-01T00:00:00.000Z"
-    },
-    "member": {
-        "id": "444555666",
-        "displayName": "Display Name",
-        "nickname": "Nick",
-        "avatar": null,
-        "displayAvatarUrl": "https://cdn.discordapp.com/...",
-        "joinedAt": "2025-01-01T00:00:00.000Z",
-        "premiumSince": null,
-        "roles": ["111222333"],
-        "pending": false,
-        "communicationDisabledUntil": null,
-        "permissions": ["SendMessages", "ViewChannel"]
-    },
-    "content": "Hello, world!",
-    "cleanContent": "Hello, world!",
-    "createdAt": "2025-01-01T12:00:00.000Z",
-    "editedAt": null,
-    "embeds": [],
-    "attachments": [],
-    "reactions": [],
-    "pinned": false,
-    "tts": false,
-    "type": 0,
-    "typeName": "0",
-    "replyTo": null,
-    "mentions": {
-        "users": [],
-        "roles": [],
-        "channels": [],
-        "everyone": false
-    }
-}</code></pre>
+                <section id="poll-events">
+                    <h2>Poll Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>messagePollVoteAdd</code></td>
+                                <td>User voted on a poll</td>
+                                <td><code>{ messageId, channelId, guildId, userId, answerId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messagePollVoteRemove</code></td>
+                                <td>User removed poll vote</td>
+                                <td><code>{ messageId, channelId, guildId, userId, answerId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </section>
 
                 <section id="member-events">
@@ -255,24 +255,13 @@ socket.on('unsubscribed', (data) => {
                                 <td>Presence changed</td>
                                 <td><code>{ old, new }</code></td>
                             </tr>
+                            <tr>
+                                <td><code>userUpdate</code></td>
+                                <td>User globally updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
                         </tbody>
                     </table>
-
-                    <h3>Member Object</h3>
-                    <pre><code>{
-    "id": "444555666",
-    "displayName": "Display Name",
-    "nickname": "Nickname",
-    "avatar": null,
-    "displayAvatarUrl": "https://cdn.discordapp.com/...",
-    "joinedAt": "2025-01-01T00:00:00.000Z",
-    "premiumSince": null,
-    "roles": ["111222333", "444555666"],
-    "pending": false,
-    "communicationDisabledUntil": null,
-    "user": { ... },
-    "permissions": ["SendMessages", "ViewChannel"]
-}</code></pre>
                 </section>
 
                 <section id="channel-events">
@@ -301,22 +290,18 @@ socket.on('unsubscribed', (data) => {
                                 <td>Channel deleted</td>
                                 <td>SerializedChannel</td>
                             </tr>
+                            <tr>
+                                <td><code>channelPinsUpdate</code></td>
+                                <td>Pins updated in channel</td>
+                                <td><code>{ channelId, guildId, lastPinAt }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>webhookUpdate</code></td>
+                                <td>Webhooks changed</td>
+                                <td><code>{ channelId, guildId }</code></td>
+                            </tr>
                         </tbody>
                     </table>
-
-                    <h3>Channel Object</h3>
-                    <pre><code>{
-    "id": "987654321",
-    "name": "general",
-    "type": 0,
-    "typeName": "text",
-    "parentId": "123456789",
-    "createdAt": "2025-01-01T00:00:00.000Z",
-    "position": 0,
-    "topic": "Welcome to general chat!",
-    "nsfw": false,
-    "rateLimitPerUser": 0
-}</code></pre>
                 </section>
 
                 <section id="thread-events">
@@ -352,43 +337,6 @@ socket.on('unsubscribed', (data) => {
                             </tr>
                         </tbody>
                     </table>
-
-                    <h3>Thread Create Example</h3>
-                    <pre><code>{
-    "thread": {
-        "id": "123456789",
-        "name": "Discussion Thread",
-        "type": 11,
-        "typeName": "public_thread",
-        "parentId": "987654321",
-        "createdAt": "2025-01-01T12:00:00.000Z"
-    },
-    "newlyCreated": true
-}</code></pre>
-
-                    <h3>Thread Delete Example</h3>
-                    <pre><code>{
-    "id": "123456789",
-    "guildId": "111222333",
-    "parentId": "987654321",
-    "name": "Old Thread",
-    "type": 11
-}</code></pre>
-
-                    <h3>Thread Members Update Example</h3>
-                    <pre><code>{
-    "threadId": "123456789",
-    "guildId": "111222333",
-    "addedMembers": [
-        {
-            "id": "444555666",
-            "threadId": "123456789",
-            "joinedAt": "2025-01-01T12:00:00.000Z"
-        }
-    ],
-    "removedMemberIds": ["777888999"],
-    "memberCount": 5
-}</code></pre>
                 </section>
 
                 <section id="role-events">
@@ -419,23 +367,6 @@ socket.on('unsubscribed', (data) => {
                             </tr>
                         </tbody>
                     </table>
-
-                    <h3>Role Object</h3>
-                    <pre><code>{
-    "id": "111222333",
-    "name": "Moderator",
-    "color": 3447003,
-    "hexColor": "#3498db",
-    "hoist": true,
-    "position": 5,
-    "permissions": "8589934591",
-    "managed": false,
-    "mentionable": true,
-    "icon": null,
-    "unicodeEmoji": null,
-    "createdAt": "2025-01-01T00:00:00.000Z",
-    "memberCount": 10
-}</code></pre>
                 </section>
 
                 <section id="guild-events">
@@ -474,8 +405,96 @@ socket.on('unsubscribed', (data) => {
                                 <td>User unbanned</td>
                                 <td><code>{ guildId, user }</code></td>
                             </tr>
+                            <tr>
+                                <td><code>guildIntegrationsUpdate</code></td>
+                                <td>Integrations updated</td>
+                                <td><code>{ guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildAuditLogEntryCreate</code></td>
+                                <td>Audit log entry created</td>
+                                <td>SerializedAuditLogEntry</td>
+                            </tr>
                         </tbody>
                     </table>
+                </section>
+
+                <section id="emoji-events">
+                    <h2>Emoji Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>emojiCreate</code></td>
+                                <td>Custom emoji added</td>
+                                <td>SerializedEmoji</td>
+                            </tr>
+                            <tr>
+                                <td><code>emojiUpdate</code></td>
+                                <td>Emoji modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>emojiDelete</code></td>
+                                <td>Emoji removed</td>
+                                <td>SerializedEmoji</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="sticker-events">
+                    <h2>Sticker Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>stickerCreate</code></td>
+                                <td>Custom sticker added</td>
+                                <td>SerializedSticker</td>
+                            </tr>
+                            <tr>
+                                <td><code>stickerUpdate</code></td>
+                                <td>Sticker modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>stickerDelete</code></td>
+                                <td>Sticker removed</td>
+                                <td>SerializedSticker</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Sticker Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "name": "cool_sticker",
+    "description": "A cool sticker",
+    "packId": null,
+    "type": 2,
+    "format": 1,
+    "formatName": "png",
+    "available": true,
+    "guildId": "111222333",
+    "user": { ... },
+    "sortValue": null,
+    "tags": "cool",
+    "url": "https://cdn.discordapp.com/stickers/...",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+}</code></pre>
                 </section>
 
                 <section id="voice-events">
@@ -496,23 +515,312 @@ socket.on('unsubscribed', (data) => {
                             </tr>
                         </tbody>
                     </table>
+                </section>
 
-                    <h3>Voice State Object</h3>
+                <section id="stage-events">
+                    <h2>Stage Instance Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>stageInstanceCreate</code></td>
+                                <td>Stage went live</td>
+                                <td>SerializedStageInstance</td>
+                            </tr>
+                            <tr>
+                                <td><code>stageInstanceUpdate</code></td>
+                                <td>Stage settings changed</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>stageInstanceDelete</code></td>
+                                <td>Stage ended</td>
+                                <td>SerializedStageInstance</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Stage Instance Object</h3>
                     <pre><code>{
+    "id": "123456789",
     "guildId": "111222333",
     "channelId": "444555666",
-    "userId": "777888999",
-    "member": { ... },
-    "sessionId": "abc123",
-    "deaf": false,
-    "mute": false,
-    "selfDeaf": false,
-    "selfMute": true,
-    "selfVideo": false,
-    "streaming": false,
-    "suppress": false,
-    "requestToSpeakTimestamp": null
+    "topic": "Community Q&A Session",
+    "privacyLevel": 2,
+    "privacyLevelName": "guild_only",
+    "guildScheduledEventId": null,
+    "createdAt": "2025-01-01T12:00:00.000Z"
 }</code></pre>
+                </section>
+
+                <section id="scheduled-events">
+                    <h2>Scheduled Event Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>guildScheduledEventCreate</code></td>
+                                <td>Scheduled event created</td>
+                                <td>SerializedScheduledEvent</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUpdate</code></td>
+                                <td>Scheduled event updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventDelete</code></td>
+                                <td>Scheduled event deleted</td>
+                                <td>SerializedScheduledEvent</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUserAdd</code></td>
+                                <td>User RSVPed to event</td>
+                                <td><code>{ guildScheduledEventId, userId, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUserRemove</code></td>
+                                <td>User cancelled RSVP</td>
+                                <td><code>{ guildScheduledEventId, userId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Scheduled Event Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "creatorId": "777888999",
+    "creator": { ... },
+    "name": "Community Game Night",
+    "description": "Join us for fun games!",
+    "scheduledStartTime": "2025-01-15T20:00:00.000Z",
+    "scheduledEndTime": "2025-01-15T23:00:00.000Z",
+    "privacyLevel": 2,
+    "status": 1,
+    "statusName": "scheduled",
+    "entityType": 2,
+    "entityTypeName": "voice",
+    "entityId": null,
+    "entityMetadata": null,
+    "userCount": 25,
+    "image": "abc123",
+    "imageUrl": "https://cdn.discordapp.com/...",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="automod-events">
+                    <h2>AutoMod Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>autoModerationRuleCreate</code></td>
+                                <td>AutoMod rule created</td>
+                                <td>SerializedAutoModRule</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationRuleUpdate</code></td>
+                                <td>AutoMod rule updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationRuleDelete</code></td>
+                                <td>AutoMod rule deleted</td>
+                                <td>SerializedAutoModRule</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationActionExecution</code></td>
+                                <td>AutoMod action executed</td>
+                                <td>SerializedAutoModAction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>AutoMod Rule Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "name": "Block Bad Words",
+    "creatorId": "444555666",
+    "eventType": 1,
+    "triggerType": 1,
+    "triggerTypeName": "keyword",
+    "triggerMetadata": {
+        "keywordFilter": ["badword1", "badword2"],
+        "regexPatterns": [],
+        "presets": [],
+        "allowList": [],
+        "mentionTotalLimit": null,
+        "mentionRaidProtectionEnabled": false
+    },
+    "actions": [
+        {
+            "type": 1,
+            "typeName": "block_message",
+            "metadata": {
+                "customMessage": "This message was blocked by AutoMod."
+            }
+        }
+    ],
+    "enabled": true,
+    "exemptRoles": ["777888999"],
+    "exemptChannels": []
+}</code></pre>
+
+                    <h3>AutoMod Action Execution Object</h3>
+                    <pre><code>{
+    "ruleId": "123456789",
+    "ruleTriggerType": 1,
+    "guildId": "111222333",
+    "userId": "444555666",
+    "channelId": "777888999",
+    "messageId": "101010101",
+    "alertSystemMessageId": null,
+    "content": "The message content that triggered AutoMod",
+    "matchedKeyword": "badword1",
+    "matchedContent": "badword1",
+    "action": {
+        "type": 1,
+        "typeName": "block_message"
+    }
+}</code></pre>
+                </section>
+
+                <section id="invite-events">
+                    <h2>Invite Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>inviteCreate</code></td>
+                                <td>Invite created</td>
+                                <td>SerializedInvite</td>
+                            </tr>
+                            <tr>
+                                <td><code>inviteDelete</code></td>
+                                <td>Invite deleted</td>
+                                <td><code>{ code, channelId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Invite Object</h3>
+                    <pre><code>{
+    "code": "abc123",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "inviter": { ... },
+    "targetUser": null,
+    "targetType": null,
+    "uses": 5,
+    "maxUses": 100,
+    "maxAge": 86400,
+    "temporary": false,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "expiresAt": "2025-01-02T00:00:00.000Z",
+    "url": "https://discord.gg/abc123"
+}</code></pre>
+                </section>
+
+                <section id="interaction-events">
+                    <h2>Interaction Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>interactionCreate</code></td>
+                                <td>Any interaction (slash command, button, modal, etc.)</td>
+                                <td>SerializedInteraction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Interaction Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "type": 2,
+    "typeName": "application_command",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "user": { ... },
+    "member": { ... },
+    "token": "interaction_token",
+    "applicationId": "777888999",
+    "commandName": "ping",
+    "commandId": "101010101",
+    "commandType": 1,
+    "customId": null,
+    "componentType": null,
+    "values": null,
+    "targetId": null,
+    "locale": "en-US",
+    "guildLocale": "en-US",
+    "createdAt": "2025-01-01T12:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="entitlement-events">
+                    <h2>Entitlement Events</h2>
+                    <p>For Discord app monetization (subscriptions, purchases).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>entitlementCreate</code></td>
+                                <td>User purchased subscription</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                            <tr>
+                                <td><code>entitlementUpdate</code></td>
+                                <td>Subscription renewed</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                            <tr>
+                                <td><code>entitlementDelete</code></td>
+                                <td>Subscription refunded/removed</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </section>
 
                 <section id="other-events">
@@ -561,45 +869,36 @@ socket.on('subscribed', ({ guildIds }) => {
 
 socket.on('discord', (payload) => {
     switch (payload.event) {
+        // Message Events
         case 'messageCreate':
             console.log(`[${payload.data.author.username}]: ${payload.data.content}`);
             break;
-        case 'messageUpdate':
-            console.log(`Message edited in ${payload.data.new.channelId}`);
+        case 'messageReactionAdd':
+            console.log(`Reaction added: ${payload.data.reaction.emoji.name}`);
             break;
-        case 'messageDelete':
-            console.log(`Message ${payload.data.id} deleted`);
-            break;
-        case 'messageDeleteBulk':
-            console.log(`${payload.data.ids.length} messages deleted`);
-            break;
+        
+        // Member Events
         case 'guildMemberAdd':
             console.log(`${payload.data.user.username} joined!`);
             break;
-        case 'guildMemberRemove':
-            console.log(`${payload.data.user.username} left!`);
+        
+        // Scheduled Events
+        case 'guildScheduledEventCreate':
+            console.log(`New event: ${payload.data.name}`);
             break;
-        case 'threadCreate':
-            console.log(`Thread ${payload.data.thread.name} created`);
+        
+        // AutoMod Events
+        case 'autoModerationActionExecution':
+            console.log(`AutoMod blocked: ${payload.data.matchedKeyword}`);
             break;
-        case 'threadDelete':
-            console.log(`Thread ${payload.data.name} deleted`);
+        
+        // Interaction Events
+        case 'interactionCreate':
+            console.log(`Interaction: ${payload.data.typeName}`);
             break;
-        case 'threadMembersUpdate':
-            console.log(`Thread ${payload.data.threadId} members updated`);
-            break;
-        case 'channelCreate':
-            console.log(`Channel ${payload.data.name} created`);
-            break;
-        case 'roleCreate':
-            console.log(`Role ${payload.data.name} created`);
-            break;
-        case 'voiceStateUpdate':
-            console.log(`Voice state updated for ${payload.data.new.userId}`);
-            break;
-        case 'typingStart':
-            console.log(`User ${payload.data.userId} is typing`);
-            break;
+        
+        default:
+            console.log(`Event: ${payload.event}`);
     }
 });
 

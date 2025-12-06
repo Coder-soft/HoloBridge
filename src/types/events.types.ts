@@ -8,6 +8,16 @@ import type {
     SerializedPresence,
     SerializedUser,
     SerializedReaction,
+    SerializedEmoji,
+    SerializedSticker,
+    SerializedScheduledEvent,
+    SerializedAutoModRule,
+    SerializedAutoModAction,
+    SerializedStageInstance,
+    SerializedInvite,
+    SerializedAuditLogEntry,
+    SerializedInteraction,
+    SerializedEntitlement,
 } from './discord.types.js';
 
 // ============================================================================
@@ -24,6 +34,8 @@ export type DiscordEventType =
     | 'messageReactionRemove'
     | 'messageReactionRemoveAll'
     | 'messageReactionRemoveEmoji'
+    | 'messagePollVoteAdd'
+    | 'messagePollVoteRemove'
     // Member Events
     | 'guildMemberAdd'
     | 'guildMemberRemove'
@@ -39,30 +51,58 @@ export type DiscordEventType =
     | 'threadUpdate'
     | 'threadDelete'
     | 'threadMembersUpdate'
+    | 'webhookUpdate'
     // Guild Events
     | 'guildCreate'
     | 'guildUpdate'
     | 'guildDelete'
     | 'guildBanAdd'
     | 'guildBanRemove'
-    | 'guildEmojisUpdate'
     | 'guildIntegrationsUpdate'
+    | 'guildAuditLogEntryCreate'
+    // Emoji Events
+    | 'emojiCreate'
+    | 'emojiUpdate'
+    | 'emojiDelete'
+    // Sticker Events
+    | 'stickerCreate'
+    | 'stickerUpdate'
+    | 'stickerDelete'
     // Role Events
     | 'roleCreate'
     | 'roleUpdate'
     | 'roleDelete'
     // Voice Events
     | 'voiceStateUpdate'
+    // Stage Instance Events
+    | 'stageInstanceCreate'
+    | 'stageInstanceUpdate'
+    | 'stageInstanceDelete'
+    // Scheduled Event Events
+    | 'guildScheduledEventCreate'
+    | 'guildScheduledEventUpdate'
+    | 'guildScheduledEventDelete'
+    | 'guildScheduledEventUserAdd'
+    | 'guildScheduledEventUserRemove'
+    // AutoMod Events
+    | 'autoModerationRuleCreate'
+    | 'autoModerationRuleUpdate'
+    | 'autoModerationRuleDelete'
+    | 'autoModerationActionExecution'
     // Typing Events
     | 'typingStart'
     // Interaction Events
     | 'interactionCreate'
     // Invite Events
     | 'inviteCreate'
-    | 'inviteDelete';
+    | 'inviteDelete'
+    // Entitlement Events
+    | 'entitlementCreate'
+    | 'entitlementUpdate'
+    | 'entitlementDelete';
 
 // ============================================================================
-// Event Payload Definitions
+// Message Event Payload Definitions
 // ============================================================================
 
 export interface MessageCreateEvent {
@@ -124,6 +164,55 @@ export interface MessageReactionRemoveEvent {
     };
 }
 
+export interface MessageReactionRemoveAllEvent {
+    event: 'messageReactionRemoveAll';
+    guildId: string | null;
+    data: {
+        messageId: string;
+        channelId: string;
+        guildId: string | null;
+    };
+}
+
+export interface MessageReactionRemoveEmojiEvent {
+    event: 'messageReactionRemoveEmoji';
+    guildId: string | null;
+    data: {
+        messageId: string;
+        channelId: string;
+        guildId: string | null;
+        emoji: { id: string | null; name: string | null };
+    };
+}
+
+export interface MessagePollVoteAddEvent {
+    event: 'messagePollVoteAdd';
+    guildId: string | null;
+    data: {
+        messageId: string;
+        channelId: string;
+        guildId: string | null;
+        userId: string;
+        answerId: number;
+    };
+}
+
+export interface MessagePollVoteRemoveEvent {
+    event: 'messagePollVoteRemove';
+    guildId: string | null;
+    data: {
+        messageId: string;
+        channelId: string;
+        guildId: string | null;
+        userId: string;
+        answerId: number;
+    };
+}
+
+// ============================================================================
+// Member Event Payload Definitions
+// ============================================================================
+
 export interface GuildMemberAddEvent {
     event: 'guildMemberAdd';
     guildId: string;
@@ -157,6 +246,19 @@ export interface PresenceUpdateEvent {
     };
 }
 
+export interface UserUpdateEvent {
+    event: 'userUpdate';
+    guildId: null;
+    data: {
+        old: Partial<SerializedUser> | null;
+        new: SerializedUser;
+    };
+}
+
+// ============================================================================
+// Channel Event Payload Definitions
+// ============================================================================
+
 export interface ChannelCreateEvent {
     event: 'channelCreate';
     guildId: string | null;
@@ -177,6 +279,29 @@ export interface ChannelDeleteEvent {
     guildId: string | null;
     data: SerializedChannel;
 }
+
+export interface ChannelPinsUpdateEvent {
+    event: 'channelPinsUpdate';
+    guildId: string | null;
+    data: {
+        channelId: string;
+        guildId: string | null;
+        lastPinAt: string | null;
+    };
+}
+
+export interface WebhookUpdateEvent {
+    event: 'webhookUpdate';
+    guildId: string;
+    data: {
+        channelId: string;
+        guildId: string;
+    };
+}
+
+// ============================================================================
+// Thread Event Payload Definitions
+// ============================================================================
 
 export interface ThreadCreateEvent {
     event: 'threadCreate';
@@ -224,6 +349,10 @@ export interface ThreadMembersUpdateEvent {
     };
 }
 
+// ============================================================================
+// Role Event Payload Definitions
+// ============================================================================
+
 export interface RoleCreateEvent {
     event: 'roleCreate';
     guildId: string;
@@ -248,6 +377,10 @@ export interface RoleDeleteEvent {
     };
 }
 
+// ============================================================================
+// Voice Event Payload Definitions
+// ============================================================================
+
 export interface VoiceStateUpdateEvent {
     event: 'voiceStateUpdate';
     guildId: string | null;
@@ -256,6 +389,10 @@ export interface VoiceStateUpdateEvent {
         new: SerializedVoiceState;
     };
 }
+
+// ============================================================================
+// Typing Event Payload Definitions
+// ============================================================================
 
 export interface TypingStartEvent {
     event: 'typingStart';
@@ -267,6 +404,10 @@ export interface TypingStartEvent {
         member: SerializedMember | null;
     };
 }
+
+// ============================================================================
+// Guild Event Payload Definitions
+// ============================================================================
 
 export interface GuildCreateEvent {
     event: 'guildCreate';
@@ -311,38 +452,304 @@ export interface GuildBanRemoveEvent {
     };
 }
 
+export interface GuildIntegrationsUpdateEvent {
+    event: 'guildIntegrationsUpdate';
+    guildId: string;
+    data: {
+        guildId: string;
+    };
+}
+
+export interface GuildAuditLogEntryCreateEvent {
+    event: 'guildAuditLogEntryCreate';
+    guildId: string;
+    data: SerializedAuditLogEntry;
+}
+
+// ============================================================================
+// Emoji Event Payload Definitions
+// ============================================================================
+
+export interface EmojiCreateEvent {
+    event: 'emojiCreate';
+    guildId: string;
+    data: SerializedEmoji;
+}
+
+export interface EmojiUpdateEvent {
+    event: 'emojiUpdate';
+    guildId: string;
+    data: {
+        old: Partial<SerializedEmoji> | null;
+        new: SerializedEmoji;
+    };
+}
+
+export interface EmojiDeleteEvent {
+    event: 'emojiDelete';
+    guildId: string;
+    data: SerializedEmoji;
+}
+
+// ============================================================================
+// Sticker Event Payload Definitions
+// ============================================================================
+
+export interface StickerCreateEvent {
+    event: 'stickerCreate';
+    guildId: string;
+    data: SerializedSticker;
+}
+
+export interface StickerUpdateEvent {
+    event: 'stickerUpdate';
+    guildId: string;
+    data: {
+        old: Partial<SerializedSticker> | null;
+        new: SerializedSticker;
+    };
+}
+
+export interface StickerDeleteEvent {
+    event: 'stickerDelete';
+    guildId: string;
+    data: SerializedSticker;
+}
+
+// ============================================================================
+// Stage Instance Event Payload Definitions
+// ============================================================================
+
+export interface StageInstanceCreateEvent {
+    event: 'stageInstanceCreate';
+    guildId: string;
+    data: SerializedStageInstance;
+}
+
+export interface StageInstanceUpdateEvent {
+    event: 'stageInstanceUpdate';
+    guildId: string;
+    data: {
+        old: SerializedStageInstance | null;
+        new: SerializedStageInstance;
+    };
+}
+
+export interface StageInstanceDeleteEvent {
+    event: 'stageInstanceDelete';
+    guildId: string;
+    data: SerializedStageInstance;
+}
+
+// ============================================================================
+// Scheduled Event Payload Definitions
+// ============================================================================
+
+export interface GuildScheduledEventCreateEvent {
+    event: 'guildScheduledEventCreate';
+    guildId: string;
+    data: SerializedScheduledEvent;
+}
+
+export interface GuildScheduledEventUpdateEvent {
+    event: 'guildScheduledEventUpdate';
+    guildId: string;
+    data: {
+        old: SerializedScheduledEvent | null;
+        new: SerializedScheduledEvent;
+    };
+}
+
+export interface GuildScheduledEventDeleteEvent {
+    event: 'guildScheduledEventDelete';
+    guildId: string;
+    data: SerializedScheduledEvent;
+}
+
+export interface GuildScheduledEventUserAddEvent {
+    event: 'guildScheduledEventUserAdd';
+    guildId: string;
+    data: {
+        guildScheduledEventId: string;
+        userId: string;
+        guildId: string;
+    };
+}
+
+export interface GuildScheduledEventUserRemoveEvent {
+    event: 'guildScheduledEventUserRemove';
+    guildId: string;
+    data: {
+        guildScheduledEventId: string;
+        userId: string;
+        guildId: string;
+    };
+}
+
+// ============================================================================
+// AutoMod Event Payload Definitions
+// ============================================================================
+
+export interface AutoModerationRuleCreateEvent {
+    event: 'autoModerationRuleCreate';
+    guildId: string;
+    data: SerializedAutoModRule;
+}
+
+export interface AutoModerationRuleUpdateEvent {
+    event: 'autoModerationRuleUpdate';
+    guildId: string;
+    data: {
+        old: SerializedAutoModRule | null;
+        new: SerializedAutoModRule;
+    };
+}
+
+export interface AutoModerationRuleDeleteEvent {
+    event: 'autoModerationRuleDelete';
+    guildId: string;
+    data: SerializedAutoModRule;
+}
+
+export interface AutoModerationActionExecutionEvent {
+    event: 'autoModerationActionExecution';
+    guildId: string;
+    data: SerializedAutoModAction;
+}
+
+// ============================================================================
+// Interaction Event Payload Definitions
+// ============================================================================
+
+export interface InteractionCreateEvent {
+    event: 'interactionCreate';
+    guildId: string | null;
+    data: SerializedInteraction;
+}
+
+// ============================================================================
+// Invite Event Payload Definitions
+// ============================================================================
+
+export interface InviteCreateEvent {
+    event: 'inviteCreate';
+    guildId: string | null;
+    data: SerializedInvite;
+}
+
+export interface InviteDeleteEvent {
+    event: 'inviteDelete';
+    guildId: string | null;
+    data: {
+        code: string;
+        channelId: string;
+        guildId: string | null;
+    };
+}
+
+// ============================================================================
+// Entitlement Event Payload Definitions
+// ============================================================================
+
+export interface EntitlementCreateEvent {
+    event: 'entitlementCreate';
+    guildId: string | null;
+    data: SerializedEntitlement;
+}
+
+export interface EntitlementUpdateEvent {
+    event: 'entitlementUpdate';
+    guildId: string | null;
+    data: SerializedEntitlement;
+}
+
+export interface EntitlementDeleteEvent {
+    event: 'entitlementDelete';
+    guildId: string | null;
+    data: SerializedEntitlement;
+}
+
 // ============================================================================
 // Union Types
 // ============================================================================
 
 export type DiscordEventPayload =
+    // Message Events
     | MessageCreateEvent
     | MessageUpdateEvent
     | MessageDeleteEvent
     | MessageDeleteBulkEvent
     | MessageReactionAddEvent
     | MessageReactionRemoveEvent
+    | MessageReactionRemoveAllEvent
+    | MessageReactionRemoveEmojiEvent
+    | MessagePollVoteAddEvent
+    | MessagePollVoteRemoveEvent
+    // Member Events
     | GuildMemberAddEvent
     | GuildMemberRemoveEvent
     | GuildMemberUpdateEvent
     | PresenceUpdateEvent
+    | UserUpdateEvent
+    // Channel Events
     | ChannelCreateEvent
     | ChannelUpdateEvent
     | ChannelDeleteEvent
+    | ChannelPinsUpdateEvent
+    | WebhookUpdateEvent
+    // Thread Events
     | ThreadCreateEvent
     | ThreadUpdateEvent
     | ThreadDeleteEvent
     | ThreadMembersUpdateEvent
+    // Role Events
     | RoleCreateEvent
     | RoleUpdateEvent
     | RoleDeleteEvent
+    // Voice Events
     | VoiceStateUpdateEvent
+    // Typing Events
     | TypingStartEvent
+    // Guild Events
     | GuildCreateEvent
     | GuildUpdateEvent
     | GuildDeleteEvent
     | GuildBanAddEvent
-    | GuildBanRemoveEvent;
+    | GuildBanRemoveEvent
+    | GuildIntegrationsUpdateEvent
+    | GuildAuditLogEntryCreateEvent
+    // Emoji Events
+    | EmojiCreateEvent
+    | EmojiUpdateEvent
+    | EmojiDeleteEvent
+    // Sticker Events
+    | StickerCreateEvent
+    | StickerUpdateEvent
+    | StickerDeleteEvent
+    // Stage Instance Events
+    | StageInstanceCreateEvent
+    | StageInstanceUpdateEvent
+    | StageInstanceDeleteEvent
+    // Scheduled Event Events
+    | GuildScheduledEventCreateEvent
+    | GuildScheduledEventUpdateEvent
+    | GuildScheduledEventDeleteEvent
+    | GuildScheduledEventUserAddEvent
+    | GuildScheduledEventUserRemoveEvent
+    // AutoMod Events
+    | AutoModerationRuleCreateEvent
+    | AutoModerationRuleUpdateEvent
+    | AutoModerationRuleDeleteEvent
+    | AutoModerationActionExecutionEvent
+    // Interaction Events
+    | InteractionCreateEvent
+    // Invite Events
+    | InviteCreateEvent
+    | InviteDeleteEvent
+    // Entitlement Events
+    | EntitlementCreateEvent
+    | EntitlementUpdateEvent
+    | EntitlementDeleteEvent;
 
 // ============================================================================
 // Client -> Server Events
