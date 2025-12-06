@@ -103,6 +103,10 @@ socket.on('discord', (event) => {
 5. Copy the token to your `.env` file
 6. Invite the bot to your server with appropriate permissions
 
+## Documentation
+
+Visit the [documentation](https://holodocs.pages.dev/) for more details.
+
 ## License
 
 MIT
