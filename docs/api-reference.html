@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - Holo Bridge</title>
+    <meta name="description" content="Complete REST API endpoint documentation for Holo Bridge.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">Holo Bridge</a>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="getting-started.html">Getting Started</a>
+                <a href="api-reference.html" class="active">API Reference</a>
+                <a href="websocket.html">WebSocket</a>
+                <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container docs-layout">
+            <aside class="sidebar">
+                <h4>Authentication</h4>
+                <ul>
+                    <li><a href="#authentication">API Key</a></li>
+                </ul>
+                <h4>Guilds</h4>
+                <ul>
+                    <li><a href="#get-guilds">List Guilds</a></li>
+                    <li><a href="#get-guild">Get Guild</a></li>
+                    <li><a href="#get-guild-channels">Get Channels</a></li>
+                    <li><a href="#get-guild-roles">Get Roles</a></li>
+                    <li><a href="#get-guild-emojis">Get Emojis</a></li>
+                    <li><a href="#get-guild-bans">Get Bans</a></li>
+                    <li><a href="#get-guild-invites">Get Invites</a></li>
+                </ul>
+                <h4>Channels</h4>
+                <ul>
+                    <li><a href="#get-channel">Get Channel</a></li>
+                    <li><a href="#create-channel">Create Channel</a></li>
+                    <li><a href="#edit-channel">Edit Channel</a></li>
+                    <li><a href="#delete-channel">Delete Channel</a></li>
+                    <li><a href="#threads">Threads</a></li>
+                </ul>
+                <h4>Messages</h4>
+                <ul>
+                    <li><a href="#get-messages">Get Messages</a></li>
+                    <li><a href="#send-message">Send Message</a></li>
+                    <li><a href="#edit-message">Edit Message</a></li>
+                    <li><a href="#delete-message">Delete Message</a></li>
+                    <li><a href="#reactions">Reactions</a></li>
+                    <li><a href="#pins">Pins</a></li>
+                </ul>
+                <h4>Members</h4>
+                <ul>
+                    <li><a href="#get-members">List Members</a></li>
+                    <li><a href="#get-member">Get Member</a></li>
+                    <li><a href="#moderation">Moderation</a></li>
+                    <li><a href="#member-roles">Roles</a></li>
+                </ul>
+                <h4>Roles</h4>
+                <ul>
+                    <li><a href="#list-roles">List Roles</a></li>
+                    <li><a href="#create-role">Create Role</a></li>
+                    <li><a href="#edit-role">Edit Role</a></li>
+                    <li><a href="#delete-role">Delete Role</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1>API Reference</h1>
+                <p>Complete REST API documentation for Holo Bridge. All endpoints require authentication via the
+                    <code>X-API-Key</code> header.
+                </p>
+
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <p>All API requests require the <code>X-API-Key</code> header with your configured API key.</p>
+                    <pre><code>curl -H "X-API-Key: your_api_key" http://localhost:3000/api/guilds</code></pre>
+
+                    <h3>Response Format</h3>
+                    <p>All responses follow a consistent format:</p>
+                    <pre><code>// Success
+{
+    "success": true,
+    "data": { ... }
+}
+
+// Error
+{
+    "success": false,
+    "error": "Error message",
+    "code": "ERROR_CODE"
+}</code></pre>
+                </section>
+
+                <section id="guilds">
+                    <h2>Guilds</h2>
+
+                    <div class="api-section" id="get-guilds">
+                        <h4><span class="method method-get">GET</span> <span class="endpoint">/api/guilds</span></h4>
+                        <p>List all guilds the bot is in.</p>
+                        <pre><code>curl -H "X-API-Key: your_key" http://localhost:3000/api/guilds</code></pre>
+                    </div>
+
+                    <div class="api-section" id="get-guild">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId</span></h4>
+                        <p>Get details of a specific guild.</p>
+                        <pre><code>curl -H "X-API-Key: your_key" http://localhost:3000/api/guilds/123456789</code></pre>
+                    </div>
+
+                    <div class="api-section" id="get-guild-channels">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/channels</span></h4>
+                        <p>Get all channels in a guild.</p>
+                    </div>
+
+                    <div class="api-section" id="get-guild-roles">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles</span></h4>
+                        <p>Get all roles in a guild.</p>
+                    </div>
+
+                    <div class="api-section" id="get-guild-emojis">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/emojis</span></h4>
+                        <p>Get all emojis in a guild.</p>
+                    </div>
+
+                    <div class="api-section" id="get-guild-bans">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/bans</span></h4>
+                        <p>Get all bans in a guild.</p>
+                    </div>
+
+                    <div class="api-section" id="get-guild-invites">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/invites</span></h4>
+                        <p>Get all invites in a guild.</p>
+                    </div>
+                </section>
+
+                <section id="channels">
+                    <h2>Channels</h2>
+
+                    <div class="api-section" id="get-channel">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/channels/:channelId</span></h4>
+                        <p>Get a channel by ID.</p>
+                    </div>
+
+                    <div class="api-section" id="create-channel">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/channels</span></h4>
+                        <p>Create a new channel in a guild.</p>
+                        <h5>Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>name</code></td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>Channel name (1-100 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>type</code></td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>text, voice, category, announcement, stage, forum</td>
+                                </tr>
+                                <tr>
+                                    <td><code>topic</code></td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>Channel topic (max 1024 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>parentId</code></td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>Category ID</td>
+                                </tr>
+                                <tr>
+                                    <td><code>position</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>Channel position</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nsfw</code></td>
+                                    <td>boolean</td>
+                                    <td>No</td>
+                                    <td>NSFW flag</td>
+                                </tr>
+                                <tr>
+                                    <td><code>rateLimitPerUser</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>Slowmode (0-21600 seconds)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>bitrate</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>Voice channel bitrate</td>
+                                </tr>
+                                <tr>
+                                    <td><code>userLimit</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>Voice channel user limit (0-99)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section" id="edit-channel">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/channels/:channelId</span></h4>
+                        <p>Edit a channel. All fields are optional.</p>
+                    </div>
+
+                    <div class="api-section" id="delete-channel">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/channels/:channelId</span></h4>
+                        <p>Delete a channel.</p>
+                    </div>
+
+                    <div class="api-section" id="threads">
+                        <h4>Threads</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/channels/:channelId/threads</code></td>
+                                    <td>Create a thread</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-get">GET</span></td>
+                                    <td><code>/api/channels/:channelId/threads</code></td>
+                                    <td>Get all threads</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/channels/:channelId/archive</code></td>
+                                    <td>Archive a thread</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/channels/:channelId/archive</code></td>
+                                    <td>Unarchive a thread</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/channels/:channelId/lock</code></td>
+                                    <td>Lock a thread</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/channels/:channelId/lock</code></td>
+                                    <td>Unlock a thread</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/channels/:channelId/clone</span></h4>
+                        <p>Clone a channel. Optionally provide a <code>name</code> in the request body.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/channels/:channelId/webhooks</span></h4>
+                        <p>Get all webhooks for a channel.</p>
+                    </div>
+                </section>
+
+                <section id="messages">
+                    <h2>Messages</h2>
+
+                    <div class="api-section" id="get-messages">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/channels/:channelId/messages</span></h4>
+                        <p>Get messages from a channel.</p>
+                        <h5>Query Parameters</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>limit</code></td>
+                                    <td>number</td>
+                                    <td>Number of messages (1-100, default: 50)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>before</code></td>
+                                    <td>string</td>
+                                    <td>Get messages before this ID</td>
+                                </tr>
+                                <tr>
+                                    <td><code>after</code></td>
+                                    <td>string</td>
+                                    <td>Get messages after this ID</td>
+                                </tr>
+                                <tr>
+                                    <td><code>around</code></td>
+                                    <td>string</td>
+                                    <td>Get messages around this ID</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/pinned</span></h4>
+                        <p>Get pinned messages in a channel.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/:messageId</span></h4>
+                        <p>Get a specific message by ID.</p>
+                    </div>
+
+                    <div class="api-section" id="send-message">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/channels/:channelId/messages</span></h4>
+                        <p>Send a message to a channel.</p>
+                        <h5>Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>content</code></td>
+                                    <td>string</td>
+                                    <td>No*</td>
+                                    <td>Message content (max 2000 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>embeds</code></td>
+                                    <td>array</td>
+                                    <td>No*</td>
+                                    <td>Array of embed objects</td>
+                                </tr>
+                                <tr>
+                                    <td><code>replyTo</code></td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>Message ID to reply to</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tts</code></td>
+                                    <td>boolean</td>
+                                    <td>No</td>
+                                    <td>Text-to-speech</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p><small>*Either content or at least one embed is required.</small></p>
+                    </div>
+
+                    <div class="api-section" id="edit-message">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/:messageId</span></h4>
+                        <p>Edit a message.</p>
+                    </div>
+
+                    <div class="api-section" id="delete-message">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/:messageId</span></h4>
+                        <p>Delete a message.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/bulk-delete</span></h4>
+                        <p>Bulk delete messages. Send <code>messageIds</code> array in body.</p>
+                    </div>
+
+                    <div class="api-section" id="reactions">
+                        <h4>Reactions</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/reactions/:emoji</code></td>
+                                    <td>Add reaction</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/reactions/:emoji</code></td>
+                                    <td>Remove reaction</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/reactions</code></td>
+                                    <td>Remove all reactions</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-get">GET</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/reactions/:emoji/users</code>
+                                    </td>
+                                    <td>Get reaction users</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section" id="pins">
+                        <h4>Pins</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/pin</code></td>
+                                    <td>Pin a message</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/channels/:channelId/messages/:messageId/pin</code></td>
+                                    <td>Unpin a message</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/channels/:channelId/messages/:messageId/crosspost</span></h4>
+                        <p>Crosspost a message (for announcement channels).</p>
+                    </div>
+                </section>
+
+                <section id="members">
+                    <h2>Members</h2>
+
+                    <div class="api-section" id="get-members">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/members</span></h4>
+                        <p>List all members in a guild.</p>
+                        <h5>Query Parameters</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>limit</code></td>
+                                    <td>number</td>
+                                    <td>Max members to return (default: 1000)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/members/search</span></h4>
+                        <p>Search members by username/nickname.</p>
+                        <h5>Query Parameters</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>q</code></td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>Search query</td>
+                                </tr>
+                                <tr>
+                                    <td><code>limit</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>Max results (default: 20)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section" id="get-member">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/members/:userId</span></h4>
+                        <p>Get a specific member.</p>
+                    </div>
+
+                    <div class="api-section" id="moderation">
+                        <h4>Moderation</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/kick</code></td>
+                                    <td>Kick member</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/ban</code></td>
+                                    <td>Ban member</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/guilds/:guildId/bans/:userId</code></td>
+                                    <td>Unban user</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-post">POST</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/timeout</code></td>
+                                    <td>Timeout member</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-delete">DELETE</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/timeout</code></td>
+                                    <td>Remove timeout</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h5>Ban Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>reason</code></td>
+                                    <td>string</td>
+                                    <td>Ban reason (max 512 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>deleteMessageSeconds</code></td>
+                                    <td>number</td>
+                                    <td>Seconds of messages to delete (0-604800)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h5>Timeout Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>duration</code></td>
+                                    <td>number</td>
+                                    <td>Yes</td>
+                                    <td>Duration in milliseconds</td>
+                                </tr>
+                                <tr>
+                                    <td><code>reason</code></td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>Timeout reason</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section" id="member-roles">
+                        <h4>Member Roles</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Endpoint</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="method method-patch">PATCH</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/nickname</code></td>
+                                    <td>Set nickname</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="method method-patch">PATCH</span></td>
+                                    <td><code>/api/guilds/:guildId/members/:userId/roles</code></td>
+                                    <td>Modify roles</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h5>Modify Roles Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>add</code></td>
+                                    <td>string[]</td>
+                                    <td>Role IDs to add</td>
+                                </tr>
+                                <tr>
+                                    <td><code>remove</code></td>
+                                    <td>string[]</td>
+                                    <td>Role IDs to remove</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="roles">
+                    <h2>Roles</h2>
+
+                    <div class="api-section" id="list-roles">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles</span></h4>
+                        <p>Get all roles in a guild.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/search?name=RoleName</span></h4>
+                        <p>Search for a role by name.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/:roleId</span></h4>
+                        <p>Get a specific role.</p>
+                    </div>
+
+                    <div class="api-section" id="create-role">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles</span></h4>
+                        <p>Create a new role.</p>
+                        <h5>Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>name</code></td>
+                                    <td>string</td>
+                                    <td>Role name (max 100 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>color</code></td>
+                                    <td>number</td>
+                                    <td>Color integer (0-16777215)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>hoist</code></td>
+                                    <td>boolean</td>
+                                    <td>Display separately</td>
+                                </tr>
+                                <tr>
+                                    <td><code>mentionable</code></td>
+                                    <td>boolean</td>
+                                    <td>Allow mentions</td>
+                                </tr>
+                                <tr>
+                                    <td><code>permissions</code></td>
+                                    <td>string</td>
+                                    <td>Permission bitfield</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-section" id="edit-role">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/:roleId</span></h4>
+                        <p>Edit a role. Same fields as create, plus <code>position</code>.</p>
+                    </div>
+
+                    <div class="api-section" id="delete-role">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/:roleId</span></h4>
+                        <p>Delete a role.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/:roleId/members</span></h4>
+                        <p>Get all member IDs with a specific role.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/roles/:roleId/permissions</span></h4>
+                        <p>Set role permissions. Send <code>permissions</code> (bitfield string) in body.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Holo Bridge &copy; 2025 - MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else if (current === 'light') {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const newTheme = prefersDark ? 'light' : 'dark';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            }
+        }
+
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        })();
+    </script>
+</body>
+
+</html>

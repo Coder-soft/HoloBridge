@@ -32,6 +32,9 @@ export const discordClient = new Client({
         // Auto moderation
         GatewayIntentBits.AutoModerationConfiguration,
         GatewayIntentBits.AutoModerationExecution,
+        // Poll events
+        GatewayIntentBits.GuildMessagePolls,
+        GatewayIntentBits.DirectMessagePolls,
     ],
     partials: [
         Partials.Message,

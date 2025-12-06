@@ -10,6 +10,16 @@ import {
     serializePresence,
     serializeUser,
     serializeReaction,
+    serializeSticker,
+    serializeGuildEmoji,
+    serializeScheduledEvent,
+    serializeAutoModRule,
+    serializeAutoModAction,
+    serializeStageInstance,
+    serializeInvite,
+    serializeAuditLogEntry,
+    serializeInteraction,
+    serializeEntitlement,
 } from '../serializers.js';
 import type {
     DiscordEventPayload,
@@ -141,6 +151,70 @@ export function registerDiscordEvents(): void {
         });
     });
 
+    discordClient.on('messageReactionRemoveAll', (message, reactions) => {
+        broadcastEvent({
+            event: 'messageReactionRemoveAll',
+            guildId: message.guildId,
+            data: {
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId,
+            },
+        });
+    });
+
+    discordClient.on('messageReactionRemoveEmoji', (reaction) => {
+        broadcastEvent({
+            event: 'messageReactionRemoveEmoji',
+            guildId: reaction.message.guildId,
+            data: {
+                messageId: reaction.message.id,
+                channelId: reaction.message.channelId,
+                guildId: reaction.message.guildId,
+                emoji: {
+                    id: reaction.emoji.id,
+                    name: reaction.emoji.name,
+                },
+            },
+        });
+    });
+
+    discordClient.on('messagePollVoteAdd', (pollAnswer, userId) => {
+        const poll = pollAnswer.poll;
+        const message = poll?.message;
+        if (!message) return; // Skip if message is not available
+        
+        broadcastEvent({
+            event: 'messagePollVoteAdd',
+            guildId: message.guildId ?? null,
+            data: {
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId ?? null,
+                userId,
+                answerId: pollAnswer.id,
+            },
+        });
+    });
+
+    discordClient.on('messagePollVoteRemove', (pollAnswer, userId) => {
+        const poll = pollAnswer.poll;
+        const message = poll?.message;
+        if (!message) return; // Skip if message is not available
+        
+        broadcastEvent({
+            event: 'messagePollVoteRemove',
+            guildId: message.guildId ?? null,
+            data: {
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId ?? null,
+                userId,
+                answerId: pollAnswer.id,
+            },
+        });
+    });
+
     // ========== MEMBER EVENTS ==========
 
     discordClient.on('guildMemberAdd', (member) => {
@@ -186,6 +260,19 @@ export function registerDiscordEvents(): void {
         });
     });
 
+    discordClient.on('userUpdate', (oldUser, newUser) => {
+        // oldUser may be partial, so we only serialize if not partial
+        const oldSerialized = oldUser.partial ? null : serializeUser(oldUser as any);
+        broadcastEvent({
+            event: 'userUpdate',
+            guildId: null,
+            data: {
+                old: oldSerialized,
+                new: serializeUser(newUser),
+            },
+        });
+    });
+
     // ========== CHANNEL EVENTS ==========
 
     discordClient.on('channelCreate', (channel) => {
@@ -212,6 +299,87 @@ export function registerDiscordEvents(): void {
             event: 'channelDelete',
             guildId: 'guildId' in channel ? channel.guildId : null,
             data: serializeChannel(channel),
+        });
+    });
+
+    discordClient.on('channelPinsUpdate', (channel, time) => {
+        broadcastEvent({
+            event: 'channelPinsUpdate',
+            guildId: 'guildId' in channel ? channel.guildId : null,
+            data: {
+                channelId: channel.id,
+                guildId: 'guildId' in channel ? channel.guildId : null,
+                lastPinAt: time?.toISOString() ?? null,
+            },
+        });
+    });
+
+    discordClient.on('webhookUpdate', (channel) => {
+        if (!('guildId' in channel) || !channel.guildId) return;
+
+        broadcastEvent({
+            event: 'webhookUpdate',
+            guildId: channel.guildId,
+            data: {
+                channelId: channel.id,
+                guildId: channel.guildId,
+            },
+        });
+    });
+
+    // ========== THREAD EVENTS ==========
+
+    discordClient.on('threadCreate', (thread, newlyCreated) => {
+        broadcastEvent({
+            event: 'threadCreate',
+            guildId: thread.guildId,
+            data: {
+                thread: serializeChannel(thread),
+                newlyCreated,
+            },
+        });
+    });
+
+    discordClient.on('threadUpdate', (oldThread, newThread) => {
+        broadcastEvent({
+            event: 'threadUpdate',
+            guildId: newThread.guildId,
+            data: {
+                old: oldThread.partial ? null : serializeChannel(oldThread),
+                new: serializeChannel(newThread),
+            },
+        });
+    });
+
+    discordClient.on('threadDelete', (thread) => {
+        broadcastEvent({
+            event: 'threadDelete',
+            guildId: thread.guildId,
+            data: {
+                id: thread.id,
+                guildId: thread.guildId,
+                parentId: thread.parentId,
+                name: thread.name,
+                type: thread.type,
+            },
+        });
+    });
+
+    discordClient.on('threadMembersUpdate', (addedMembers, removedMembers, thread) => {
+        broadcastEvent({
+            event: 'threadMembersUpdate',
+            guildId: thread.guildId,
+            data: {
+                threadId: thread.id,
+                guildId: thread.guildId,
+                addedMembers: addedMembers.map((m) => ({
+                    id: m.id,
+                    threadId: m.thread?.id ?? thread.id,
+                    joinedAt: m.joinedTimestamp ? new Date(m.joinedTimestamp).toISOString() : new Date().toISOString(),
+                })),
+                removedMemberIds: removedMembers.map((m) => m.id),
+                memberCount: thread.memberCount ?? 0,
+            },
         });
     });
 
@@ -302,6 +470,82 @@ export function registerDiscordEvents(): void {
         });
     });
 
+    discordClient.on('guildIntegrationsUpdate', (guild) => {
+        broadcastEvent({
+            event: 'guildIntegrationsUpdate',
+            guildId: guild.id,
+            data: {
+                guildId: guild.id,
+            },
+        });
+    });
+
+    discordClient.on('guildAuditLogEntryCreate', (entry, guild) => {
+        broadcastEvent({
+            event: 'guildAuditLogEntryCreate',
+            guildId: guild.id,
+            data: serializeAuditLogEntry(entry),
+        });
+    });
+
+    // ========== EMOJI EVENTS ==========
+
+    discordClient.on('emojiCreate', (emoji) => {
+        broadcastEvent({
+            event: 'emojiCreate',
+            guildId: emoji.guild.id,
+            data: serializeGuildEmoji(emoji),
+        });
+    });
+
+    discordClient.on('emojiUpdate', (oldEmoji, newEmoji) => {
+        broadcastEvent({
+            event: 'emojiUpdate',
+            guildId: newEmoji.guild.id,
+            data: {
+                old: serializeGuildEmoji(oldEmoji),
+                new: serializeGuildEmoji(newEmoji),
+            },
+        });
+    });
+
+    discordClient.on('emojiDelete', (emoji) => {
+        broadcastEvent({
+            event: 'emojiDelete',
+            guildId: emoji.guild.id,
+            data: serializeGuildEmoji(emoji),
+        });
+    });
+
+    // ========== STICKER EVENTS ==========
+
+    discordClient.on('stickerCreate', (sticker) => {
+        broadcastEvent({
+            event: 'stickerCreate',
+            guildId: sticker.guildId ?? '',
+            data: serializeSticker(sticker),
+        });
+    });
+
+    discordClient.on('stickerUpdate', (oldSticker, newSticker) => {
+        broadcastEvent({
+            event: 'stickerUpdate',
+            guildId: newSticker.guildId ?? '',
+            data: {
+                old: serializeSticker(oldSticker),
+                new: serializeSticker(newSticker),
+            },
+        });
+    });
+
+    discordClient.on('stickerDelete', (sticker) => {
+        broadcastEvent({
+            event: 'stickerDelete',
+            guildId: sticker.guildId ?? '',
+            data: serializeSticker(sticker),
+        });
+    });
+
     // ========== VOICE EVENTS ==========
 
     discordClient.on('voiceStateUpdate', (oldState, newState) => {
@@ -312,6 +556,130 @@ export function registerDiscordEvents(): void {
                 old: oldState.channelId ? serializeVoiceState(oldState) : null,
                 new: serializeVoiceState(newState),
             },
+        });
+    });
+
+    // ========== STAGE INSTANCE EVENTS ==========
+
+    discordClient.on('stageInstanceCreate', (stageInstance) => {
+        broadcastEvent({
+            event: 'stageInstanceCreate',
+            guildId: stageInstance.guildId,
+            data: serializeStageInstance(stageInstance),
+        });
+    });
+
+    discordClient.on('stageInstanceUpdate', (oldStageInstance, newStageInstance) => {
+        broadcastEvent({
+            event: 'stageInstanceUpdate',
+            guildId: newStageInstance.guildId,
+            data: {
+                old: oldStageInstance ? serializeStageInstance(oldStageInstance) : null,
+                new: serializeStageInstance(newStageInstance),
+            },
+        });
+    });
+
+    discordClient.on('stageInstanceDelete', (stageInstance) => {
+        broadcastEvent({
+            event: 'stageInstanceDelete',
+            guildId: stageInstance.guildId,
+            data: serializeStageInstance(stageInstance),
+        });
+    });
+
+    // ========== SCHEDULED EVENT EVENTS ==========
+
+    discordClient.on('guildScheduledEventCreate', (event) => {
+        broadcastEvent({
+            event: 'guildScheduledEventCreate',
+            guildId: event.guildId,
+            data: serializeScheduledEvent(event),
+        });
+    });
+
+    discordClient.on('guildScheduledEventUpdate', (oldEvent, newEvent) => {
+        // oldEvent may be partial
+        const oldSerialized = oldEvent && !oldEvent.partial
+            ? serializeScheduledEvent(oldEvent as any)
+            : null;
+        broadcastEvent({
+            event: 'guildScheduledEventUpdate',
+            guildId: newEvent.guildId,
+            data: {
+                old: oldSerialized,
+                new: serializeScheduledEvent(newEvent as any),
+            },
+        });
+    });
+
+    discordClient.on('guildScheduledEventDelete', (event) => {
+        // event may be partial, but we still want to broadcast the deletion
+        broadcastEvent({
+            event: 'guildScheduledEventDelete',
+            guildId: event.guildId,
+            data: serializeScheduledEvent(event as any),
+        });
+    });
+
+    discordClient.on('guildScheduledEventUserAdd', (event, user) => {
+        broadcastEvent({
+            event: 'guildScheduledEventUserAdd',
+            guildId: event.guildId,
+            data: {
+                guildScheduledEventId: event.id,
+                userId: user.id,
+                guildId: event.guildId,
+            },
+        });
+    });
+
+    discordClient.on('guildScheduledEventUserRemove', (event, user) => {
+        broadcastEvent({
+            event: 'guildScheduledEventUserRemove',
+            guildId: event.guildId,
+            data: {
+                guildScheduledEventId: event.id,
+                userId: user.id,
+                guildId: event.guildId,
+            },
+        });
+    });
+
+    // ========== AUTOMOD EVENTS ==========
+
+    discordClient.on('autoModerationRuleCreate', (rule) => {
+        broadcastEvent({
+            event: 'autoModerationRuleCreate',
+            guildId: rule.guild.id,
+            data: serializeAutoModRule(rule),
+        });
+    });
+
+    discordClient.on('autoModerationRuleUpdate', (oldRule, newRule) => {
+        broadcastEvent({
+            event: 'autoModerationRuleUpdate',
+            guildId: newRule.guild.id,
+            data: {
+                old: oldRule ? serializeAutoModRule(oldRule) : null,
+                new: serializeAutoModRule(newRule),
+            },
+        });
+    });
+
+    discordClient.on('autoModerationRuleDelete', (rule) => {
+        broadcastEvent({
+            event: 'autoModerationRuleDelete',
+            guildId: rule.guild.id,
+            data: serializeAutoModRule(rule),
+        });
+    });
+
+    discordClient.on('autoModerationActionExecution', (execution) => {
+        broadcastEvent({
+            event: 'autoModerationActionExecution',
+            guildId: execution.guild.id,
+            data: serializeAutoModAction(execution),
         });
     });
 
@@ -330,5 +698,63 @@ export function registerDiscordEvents(): void {
         });
     });
 
-    console.log('✅ Discord event handlers registered');
+    // ========== INTERACTION EVENT ==========
+
+    discordClient.on('interactionCreate', (interaction) => {
+        broadcastEvent({
+            event: 'interactionCreate',
+            guildId: interaction.guildId,
+            data: serializeInteraction(interaction),
+        });
+    });
+
+    // ========== INVITE EVENTS ==========
+
+    discordClient.on('inviteCreate', (invite) => {
+        broadcastEvent({
+            event: 'inviteCreate',
+            guildId: invite.guild?.id ?? null,
+            data: serializeInvite(invite),
+        });
+    });
+
+    discordClient.on('inviteDelete', (invite) => {
+        broadcastEvent({
+            event: 'inviteDelete',
+            guildId: invite.guild?.id ?? null,
+            data: {
+                code: invite.code,
+                channelId: invite.channel?.id ?? null,
+                guildId: invite.guild?.id ?? null,
+            },
+        });
+    });
+
+    // ========== ENTITLEMENT EVENTS ==========
+
+    discordClient.on('entitlementCreate', (entitlement) => {
+        broadcastEvent({
+            event: 'entitlementCreate',
+            guildId: entitlement.guildId,
+            data: serializeEntitlement(entitlement),
+        });
+    });
+
+    discordClient.on('entitlementUpdate', (oldEntitlement, newEntitlement) => {
+        broadcastEvent({
+            event: 'entitlementUpdate',
+            guildId: newEntitlement.guildId,
+            data: serializeEntitlement(newEntitlement),
+        });
+    });
+
+    discordClient.on('entitlementDelete', (entitlement) => {
+        broadcastEvent({
+            event: 'entitlementDelete',
+            guildId: entitlement.guildId,
+            data: serializeEntitlement(entitlement),
+        });
+    });
+
+    console.log('✅ Discord event handlers registered (45+ event types)');
 }

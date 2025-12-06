@@ -1,4 +1,4 @@
-# Discord Web Bridge
+# Holo Bridge
 
 A type-safe TypeScript bridge between websites and Discord bots. Provides a REST API and WebSocket interface for full Discord bot capabilities.
 
@@ -102,6 +102,10 @@ socket.on('discord', (event) => {
    - Message Content Intent
 5. Copy the token to your `.env` file
 6. Invite the bot to your server with appropriate permissions
+
+## Documentation
+
+Visit the [documentation](https://holodocs.pages.dev/) for more details.
 
 ## License
 

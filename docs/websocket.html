@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Events - Holo Bridge</title>
+    <meta name="description" content="Real-time Discord event streaming documentation for Holo Bridge.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">Holo Bridge</a>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="getting-started.html">Getting Started</a>
+                <a href="api-reference.html">API Reference</a>
+                <a href="websocket.html" class="active">WebSocket</a>
+                <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container docs-layout">
+            <aside class="sidebar">
+                <h4>Getting Started</h4>
+                <ul>
+                    <li><a href="#connection">Connection</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                    <li><a href="#subscribing">Subscribing</a></li>
+                </ul>
+                <h4>Events</h4>
+                <ul>
+                    <li><a href="#message-events">Message Events</a></li>
+                    <li><a href="#reaction-events">Reaction Events</a></li>
+                    <li><a href="#poll-events">Poll Events</a></li>
+                    <li><a href="#member-events">Member Events</a></li>
+                    <li><a href="#channel-events">Channel Events</a></li>
+                    <li><a href="#thread-events">Thread Events</a></li>
+                    <li><a href="#role-events">Role Events</a></li>
+                    <li><a href="#guild-events">Guild Events</a></li>
+                    <li><a href="#emoji-events">Emoji Events</a></li>
+                    <li><a href="#sticker-events">Sticker Events</a></li>
+                    <li><a href="#voice-events">Voice Events</a></li>
+                    <li><a href="#stage-events">Stage Instance Events</a></li>
+                    <li><a href="#scheduled-events">Scheduled Events</a></li>
+                    <li><a href="#automod-events">AutoMod Events</a></li>
+                    <li><a href="#invite-events">Invite Events</a></li>
+                    <li><a href="#interaction-events">Interaction Events</a></li>
+                    <li><a href="#entitlement-events">Entitlement Events</a></li>
+                    <li><a href="#other-events">Other Events</a></li>
+                </ul>
+            </aside>
+
+            <div class="content">
+                <h1>WebSocket Events</h1>
+                <p>Holo Bridge provides real-time event streaming via Socket.IO. Subscribe to guilds and receive
+                    Discord events as they happen. <strong>45+ event types are supported.</strong></p>
+
+                <section id="connection">
+                    <h2>Connection</h2>
+                    <p>Connect to the WebSocket server using Socket.IO:</p>
+                    <pre><code>import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3000', {
+    auth: {
+        apiKey: 'your_api_key'
+    }
+});
+
+socket.on('connect', () => {
+    console.log('Connected to Holo Bridge');
+});
+
+socket.on('connect_error', (error) => {
+    console.error('Connection error:', error.message);
+});
+
+socket.on('disconnect', (reason) => {
+    console.log('Disconnected:', reason);
+});</code></pre>
+                </section>
+
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <p>Authentication is required and must be provided in the <code>auth</code> option when connecting:
+                    </p>
+                    <pre><code>const socket = io('http://localhost:3000', {
+    auth: {
+        apiKey: 'your_secure_api_key'
+    }
+});</code></pre>
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> If authentication fails, the connection will be rejected with an error.
+                    </div>
+                </section>
+
+                <section id="subscribing">
+                    <h2>Subscribing to Guilds</h2>
+                    <p>After connecting, subscribe to specific guilds to receive their events:</p>
+                    <pre><code>// Subscribe to guilds
+socket.emit('subscribe', {
+    guildIds: ['123456789012345678', '987654321098765432']
+});
+
+// Listen for subscription confirmation
+socket.on('subscribed', (data) => {
+    console.log('Subscribed to guilds:', data.guildIds);
+});
+
+// Unsubscribe from guilds
+socket.emit('unsubscribe', {
+    guildIds: ['123456789012345678']
+});
+
+socket.on('unsubscribed', (data) => {
+    console.log('Unsubscribed from guilds:', data.guildIds);
+});</code></pre>
+
+                    <h3>Listening for Events</h3>
+                    <p>All Discord events are emitted through the <code>discord</code> event:</p>
+                    <pre><code>socket.on('discord', (payload) => {
+    console.log('Event:', payload.event);
+    console.log('Guild:', payload.guildId);
+    console.log('Data:', payload.data);
+});</code></pre>
+                </section>
+
+                <section id="message-events">
+                    <h2>Message Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>messageCreate</code></td>
+                                <td>New message sent</td>
+                                <td>SerializedMessage</td>
+                            </tr>
+                            <tr>
+                                <td><code>messageUpdate</code></td>
+                                <td>Message edited</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageDelete</code></td>
+                                <td>Message deleted</td>
+                                <td><code>{ id, channelId, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageDeleteBulk</code></td>
+                                <td>Multiple messages deleted</td>
+                                <td><code>{ ids, channelId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="reaction-events">
+                    <h2>Reaction Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>messageReactionAdd</code></td>
+                                <td>Reaction added to message</td>
+                                <td><code>{ messageId, channelId, guildId, userId, reaction }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageReactionRemove</code></td>
+                                <td>Reaction removed from message</td>
+                                <td><code>{ messageId, channelId, guildId, userId, emoji }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageReactionRemoveAll</code></td>
+                                <td>All reactions removed from message</td>
+                                <td><code>{ messageId, channelId, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messageReactionRemoveEmoji</code></td>
+                                <td>All reactions of specific emoji removed</td>
+                                <td><code>{ messageId, channelId, guildId, emoji }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="poll-events">
+                    <h2>Poll Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>messagePollVoteAdd</code></td>
+                                <td>User voted on a poll</td>
+                                <td><code>{ messageId, channelId, guildId, userId, answerId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>messagePollVoteRemove</code></td>
+                                <td>User removed poll vote</td>
+                                <td><code>{ messageId, channelId, guildId, userId, answerId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="member-events">
+                    <h2>Member Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>guildMemberAdd</code></td>
+                                <td>Member joined</td>
+                                <td>SerializedMember</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildMemberRemove</code></td>
+                                <td>Member left/kicked</td>
+                                <td><code>{ user, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildMemberUpdate</code></td>
+                                <td>Member updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>presenceUpdate</code></td>
+                                <td>Presence changed</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>userUpdate</code></td>
+                                <td>User globally updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="channel-events">
+                    <h2>Channel Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>channelCreate</code></td>
+                                <td>Channel created</td>
+                                <td>SerializedChannel</td>
+                            </tr>
+                            <tr>
+                                <td><code>channelUpdate</code></td>
+                                <td>Channel modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>channelDelete</code></td>
+                                <td>Channel deleted</td>
+                                <td>SerializedChannel</td>
+                            </tr>
+                            <tr>
+                                <td><code>channelPinsUpdate</code></td>
+                                <td>Pins updated in channel</td>
+                                <td><code>{ channelId, guildId, lastPinAt }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>webhookUpdate</code></td>
+                                <td>Webhooks changed</td>
+                                <td><code>{ channelId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="thread-events">
+                    <h2>Thread Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>threadCreate</code></td>
+                                <td>Thread created</td>
+                                <td><code>{ thread, newlyCreated }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>threadUpdate</code></td>
+                                <td>Thread modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>threadDelete</code></td>
+                                <td>Thread deleted</td>
+                                <td><code>{ id, guildId, parentId, name, type }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>threadMembersUpdate</code></td>
+                                <td>Thread members changed</td>
+                                <td><code>{ threadId, guildId, addedMembers, removedMemberIds, memberCount }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="role-events">
+                    <h2>Role Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>roleCreate</code></td>
+                                <td>Role created</td>
+                                <td>SerializedRole</td>
+                            </tr>
+                            <tr>
+                                <td><code>roleUpdate</code></td>
+                                <td>Role modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>roleDelete</code></td>
+                                <td>Role deleted</td>
+                                <td><code>{ id, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="guild-events">
+                    <h2>Guild Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>guildCreate</code></td>
+                                <td>Bot joined guild</td>
+                                <td>SerializedGuild</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildUpdate</code></td>
+                                <td>Guild modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildDelete</code></td>
+                                <td>Bot left/removed</td>
+                                <td><code>{ id, name, unavailable }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildBanAdd</code></td>
+                                <td>User banned</td>
+                                <td><code>{ guildId, user }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildBanRemove</code></td>
+                                <td>User unbanned</td>
+                                <td><code>{ guildId, user }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildIntegrationsUpdate</code></td>
+                                <td>Integrations updated</td>
+                                <td><code>{ guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildAuditLogEntryCreate</code></td>
+                                <td>Audit log entry created</td>
+                                <td>SerializedAuditLogEntry</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="emoji-events">
+                    <h2>Emoji Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>emojiCreate</code></td>
+                                <td>Custom emoji added</td>
+                                <td>SerializedEmoji</td>
+                            </tr>
+                            <tr>
+                                <td><code>emojiUpdate</code></td>
+                                <td>Emoji modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>emojiDelete</code></td>
+                                <td>Emoji removed</td>
+                                <td>SerializedEmoji</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="sticker-events">
+                    <h2>Sticker Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>stickerCreate</code></td>
+                                <td>Custom sticker added</td>
+                                <td>SerializedSticker</td>
+                            </tr>
+                            <tr>
+                                <td><code>stickerUpdate</code></td>
+                                <td>Sticker modified</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>stickerDelete</code></td>
+                                <td>Sticker removed</td>
+                                <td>SerializedSticker</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Sticker Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "name": "cool_sticker",
+    "description": "A cool sticker",
+    "packId": null,
+    "type": 2,
+    "format": 1,
+    "formatName": "png",
+    "available": true,
+    "guildId": "111222333",
+    "user": { ... },
+    "sortValue": null,
+    "tags": "cool",
+    "url": "https://cdn.discordapp.com/stickers/...",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="voice-events">
+                    <h2>Voice Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>voiceStateUpdate</code></td>
+                                <td>Voice state changed</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="stage-events">
+                    <h2>Stage Instance Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>stageInstanceCreate</code></td>
+                                <td>Stage went live</td>
+                                <td>SerializedStageInstance</td>
+                            </tr>
+                            <tr>
+                                <td><code>stageInstanceUpdate</code></td>
+                                <td>Stage settings changed</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>stageInstanceDelete</code></td>
+                                <td>Stage ended</td>
+                                <td>SerializedStageInstance</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Stage Instance Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "topic": "Community Q&A Session",
+    "privacyLevel": 2,
+    "privacyLevelName": "guild_only",
+    "guildScheduledEventId": null,
+    "createdAt": "2025-01-01T12:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="scheduled-events">
+                    <h2>Scheduled Event Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>guildScheduledEventCreate</code></td>
+                                <td>Scheduled event created</td>
+                                <td>SerializedScheduledEvent</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUpdate</code></td>
+                                <td>Scheduled event updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventDelete</code></td>
+                                <td>Scheduled event deleted</td>
+                                <td>SerializedScheduledEvent</td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUserAdd</code></td>
+                                <td>User RSVPed to event</td>
+                                <td><code>{ guildScheduledEventId, userId, guildId }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>guildScheduledEventUserRemove</code></td>
+                                <td>User cancelled RSVP</td>
+                                <td><code>{ guildScheduledEventId, userId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Scheduled Event Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "creatorId": "777888999",
+    "creator": { ... },
+    "name": "Community Game Night",
+    "description": "Join us for fun games!",
+    "scheduledStartTime": "2025-01-15T20:00:00.000Z",
+    "scheduledEndTime": "2025-01-15T23:00:00.000Z",
+    "privacyLevel": 2,
+    "status": 1,
+    "statusName": "scheduled",
+    "entityType": 2,
+    "entityTypeName": "voice",
+    "entityId": null,
+    "entityMetadata": null,
+    "userCount": 25,
+    "image": "abc123",
+    "imageUrl": "https://cdn.discordapp.com/...",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="automod-events">
+                    <h2>AutoMod Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>autoModerationRuleCreate</code></td>
+                                <td>AutoMod rule created</td>
+                                <td>SerializedAutoModRule</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationRuleUpdate</code></td>
+                                <td>AutoMod rule updated</td>
+                                <td><code>{ old, new }</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationRuleDelete</code></td>
+                                <td>AutoMod rule deleted</td>
+                                <td>SerializedAutoModRule</td>
+                            </tr>
+                            <tr>
+                                <td><code>autoModerationActionExecution</code></td>
+                                <td>AutoMod action executed</td>
+                                <td>SerializedAutoModAction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>AutoMod Rule Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "guildId": "111222333",
+    "name": "Block Bad Words",
+    "creatorId": "444555666",
+    "eventType": 1,
+    "triggerType": 1,
+    "triggerTypeName": "keyword",
+    "triggerMetadata": {
+        "keywordFilter": ["badword1", "badword2"],
+        "regexPatterns": [],
+        "presets": [],
+        "allowList": [],
+        "mentionTotalLimit": null,
+        "mentionRaidProtectionEnabled": false
+    },
+    "actions": [
+        {
+            "type": 1,
+            "typeName": "block_message",
+            "metadata": {
+                "customMessage": "This message was blocked by AutoMod."
+            }
+        }
+    ],
+    "enabled": true,
+    "exemptRoles": ["777888999"],
+    "exemptChannels": []
+}</code></pre>
+
+                    <h3>AutoMod Action Execution Object</h3>
+                    <pre><code>{
+    "ruleId": "123456789",
+    "ruleTriggerType": 1,
+    "guildId": "111222333",
+    "userId": "444555666",
+    "channelId": "777888999",
+    "messageId": "101010101",
+    "alertSystemMessageId": null,
+    "content": "The message content that triggered AutoMod",
+    "matchedKeyword": "badword1",
+    "matchedContent": "badword1",
+    "action": {
+        "type": 1,
+        "typeName": "block_message"
+    }
+}</code></pre>
+                </section>
+
+                <section id="invite-events">
+                    <h2>Invite Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>inviteCreate</code></td>
+                                <td>Invite created</td>
+                                <td>SerializedInvite</td>
+                            </tr>
+                            <tr>
+                                <td><code>inviteDelete</code></td>
+                                <td>Invite deleted</td>
+                                <td><code>{ code, channelId, guildId }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Invite Object</h3>
+                    <pre><code>{
+    "code": "abc123",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "inviter": { ... },
+    "targetUser": null,
+    "targetType": null,
+    "uses": 5,
+    "maxUses": 100,
+    "maxAge": 86400,
+    "temporary": false,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "expiresAt": "2025-01-02T00:00:00.000Z",
+    "url": "https://discord.gg/abc123"
+}</code></pre>
+                </section>
+
+                <section id="interaction-events">
+                    <h2>Interaction Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>interactionCreate</code></td>
+                                <td>Any interaction (slash command, button, modal, etc.)</td>
+                                <td>SerializedInteraction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Interaction Object</h3>
+                    <pre><code>{
+    "id": "123456789",
+    "type": 2,
+    "typeName": "application_command",
+    "guildId": "111222333",
+    "channelId": "444555666",
+    "user": { ... },
+    "member": { ... },
+    "token": "interaction_token",
+    "applicationId": "777888999",
+    "commandName": "ping",
+    "commandId": "101010101",
+    "commandType": 1,
+    "customId": null,
+    "componentType": null,
+    "values": null,
+    "targetId": null,
+    "locale": "en-US",
+    "guildLocale": "en-US",
+    "createdAt": "2025-01-01T12:00:00.000Z"
+}</code></pre>
+                </section>
+
+                <section id="entitlement-events">
+                    <h2>Entitlement Events</h2>
+                    <p>For Discord app monetization (subscriptions, purchases).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>entitlementCreate</code></td>
+                                <td>User purchased subscription</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                            <tr>
+                                <td><code>entitlementUpdate</code></td>
+                                <td>Subscription renewed</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                            <tr>
+                                <td><code>entitlementDelete</code></td>
+                                <td>Subscription refunded/removed</td>
+                                <td>SerializedEntitlement</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section id="other-events">
+                    <h2>Other Events</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Description</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>typingStart</code></td>
+                                <td>User started typing</td>
+                                <td><code>{ channelId, userId, timestamp, member }</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <h2>Error Handling</h2>
+                <pre><code>socket.on('error', (error) => {
+    console.error('WebSocket error:', error.message);
+    if (error.code) {
+        console.error('Error code:', error.code);
+    }
+});</code></pre>
+
+                <h2>Complete Example</h2>
+                <pre><code>import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3000', {
+    auth: { apiKey: 'your_api_key' }
+});
+
+socket.on('connect', () => {
+    console.log('Connected!');
+    socket.emit('subscribe', { guildIds: ['123456789'] });
+});
+
+socket.on('subscribed', ({ guildIds }) => {
+    console.log('Subscribed to:', guildIds);
+});
+
+socket.on('discord', (payload) => {
+    switch (payload.event) {
+        // Message Events
+        case 'messageCreate':
+            console.log(`[${payload.data.author.username}]: ${payload.data.content}`);
+            break;
+        case 'messageReactionAdd':
+            console.log(`Reaction added: ${payload.data.reaction.emoji.name}`);
+            break;
+        
+        // Member Events
+        case 'guildMemberAdd':
+            console.log(`${payload.data.user.username} joined!`);
+            break;
+        
+        // Scheduled Events
+        case 'guildScheduledEventCreate':
+            console.log(`New event: ${payload.data.name}`);
+            break;
+        
+        // AutoMod Events
+        case 'autoModerationActionExecution':
+            console.log(`AutoMod blocked: ${payload.data.matchedKeyword}`);
+            break;
+        
+        // Interaction Events
+        case 'interactionCreate':
+            console.log(`Interaction: ${payload.data.typeName}`);
+            break;
+        
+        default:
+            console.log(`Event: ${payload.event}`);
+    }
+});
+
+socket.on('error', console.error);
+socket.on('disconnect', (reason) => console.log('Disconnected:', reason));</code></pre>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Holo Bridge &copy; 2025 - MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else if (current === 'light') {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const newTheme = prefersDark ? 'light' : 'dark';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            }
+        }
+
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        })();
+    </script>
+</body>
+
+</html>
