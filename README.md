@@ -132,6 +132,8 @@ socket.on('discord', (event) => {
 6. Copy the token to your `.env` file
 7. Invite the bot to your server with `Administrator` permissions for full functionality
 
+# Fun Use Cases
+- [Use Cases](use_cases.md)
 ## Documentation
 
 Visit the [documentation](https://holodocs.pages.dev/) for more details.
