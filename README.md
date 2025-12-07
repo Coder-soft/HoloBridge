@@ -1,46 +1,127 @@
-# Holo Bridge
+# HoloBridge
 
-A type-safe TypeScript bridge between websites and Discord bots. Provides a REST API and WebSocket interface for full Discord bot capabilities.
+A type-safe TypeScript bridge between websites and Discord bots. Provides a REST API, WebSocket interface, and plugin system for full Discord bot capabilities.
 
 ## Features
 
 - **REST API** for all Discord operations
 - **WebSocket** real-time event streaming
+- **Plugin System** for extensibility
+- **Granular API Scopes** for secure access control
+- **Rate Limiting** for API protection
+- **CLI Tool** for easy management
+- **Docker Ready** for easy deployment
 - **Type-safe** with Zod validation
-- **Full Discord.js coverage**:
-  - Guilds, Channels, Roles
-  - Members, Bans, Timeouts
-  - Messages, Reactions, Pins
-  - Voice state tracking
-  - And more...
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Option 1: Using the CLI
 
 ```bash
+# Install globally
+npm install -g holobridge
+
+# Initialize configuration
+holo init
+
+# Check your setup
+holo doctor
+
+# Start the server
+holo start
+```
+
+### Option 2: Manual Setup
+
+```bash
+# Install dependencies
 npm install
-```
 
-### 2. Configure Environment
+# Copy environment file
+cp .env.example .env
+# Edit .env with your Discord token and API key
 
-Copy `.env.example` to `.env` and fill in your values:
-
-```env
-DISCORD_TOKEN=your_discord_bot_token
-API_KEY=your_secure_api_key
-PORT=3000
-```
-
-### 3. Run
-
-```bash
-# Development
-npm run dev
-
-# Production
+# Build and run
 npm run build
 npm start
+```
+
+### Option 3: Docker
+
+```bash
+# Using Docker Compose
+docker-compose up -d
+
+# Or build manually
+docker build -t holobridge .
+docker run -p 3000:3000 --env-file .env holobridge
+```
+
+## Configuration
+
+Copy `.env.example` to `.env` and configure:
+
+```env
+# Required
+DISCORD_TOKEN=your_discord_bot_token
+API_KEY=your_secure_api_key
+
+# Optional
+PORT=3000
+DEBUG=false
+PLUGINS_ENABLED=true
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_MAX=100
+```
+
+### Multiple API Keys with Scopes
+
+For granular access control, use the `API_KEYS` environment variable:
+
+```env
+API_KEYS=[{"id":"readonly","name":"Dashboard","key":"dash_xxx","scopes":["read:guilds","read:messages"]}]
+```
+
+**Available Scopes:**
+- `read:guilds`, `read:channels`, `read:members`, `read:messages`
+- `write:messages`, `write:members`, `write:channels`, `write:roles`
+- `events` (WebSocket access)
+- `admin` (full access)
+
+## Plugin System
+
+Extend HoloBridge with custom plugins. Create `.js` files in the `plugins/` directory:
+
+```javascript
+export default {
+    metadata: {
+        name: 'my-plugin',
+        version: '1.0.0',
+    },
+
+    onLoad(ctx) {
+        ctx.log('Plugin loaded!');
+        // ctx.client - Discord.js Client
+        // ctx.io - Socket.IO Server
+    },
+
+    onEvent(eventName, data) {
+        if (eventName === 'messageCreate') {
+            // React to messages
+        }
+    },
+};
+```
+
+See [plugins/README.md](plugins/README.md) for full documentation.
+
+## CLI Commands
+
+```bash
+holo start          # Start the server
+holo start --watch  # Development mode with hot reload
+holo doctor         # Check configuration and environment
+holo init           # Interactive setup wizard
 ```
 
 ## API Reference
@@ -52,6 +133,13 @@ All API requests require the `X-API-Key` header:
 ```bash
 curl -H "X-API-Key: your_key" http://localhost:3000/api/guilds
 ```
+
+### Rate Limiting
+
+Responses include rate limit headers:
+- `X-RateLimit-Limit` - Max requests per window
+- `X-RateLimit-Remaining` - Requests remaining
+- `X-RateLimit-Reset` - Unix timestamp when limit resets
 
 ### REST Endpoints
 
@@ -68,13 +156,7 @@ curl -H "X-API-Key: your_key" http://localhost:3000/api/guilds
 | `POST` | `/api/channels/:id/messages` | Send message |
 | `PATCH` | `/api/channels/:id/messages/:msgId` | Edit message |
 | `DELETE` | `/api/channels/:id/messages/:msgId` | Delete message |
-| `GET` | `/api/guilds/:id/stickers` | List stickers |
-| `GET` | `/api/guilds/:id/scheduled-events` | List scheduled events |
-| `GET` | `/api/guilds/:id/auto-moderation/rules` | List AutoMod rules |
-| `GET` | `/api/guilds/:id/emojis` | List emojis |
-| `GET` | `/api/invites/:code` | Get invite info |
-| `GET` | `/api/webhooks/:id` | Get webhook info |
-| `GET` | `/api/stage-instances/:channelId` | Get stage instance |
+| `GET` | `/health` | Health check (no auth) |
 
 ### WebSocket Events
 
@@ -87,55 +169,48 @@ const socket = io('http://localhost:3000', {
   auth: { apiKey: 'your_key' }
 });
 
-// Subscribe to guild events
 socket.emit('subscribe', { guildIds: ['123456789'] });
 
-// Listen for Discord events
 socket.on('discord', (event) => {
   console.log(event.event, event.data);
 });
 ```
 
-**Supported Events (45+):**
-
-- **Messages:** `messageCreate`, `messageUpdate`, `messageDelete`, `messageDeleteBulk`
-- **Reactions:** `messageReactionAdd`, `messageReactionRemove`, `messageReactionRemoveAll`, `messageReactionRemoveEmoji`
-- **Polls:** `messagePollVoteAdd`, `messagePollVoteRemove`
-- **Members:** `guildMemberAdd`, `guildMemberRemove`, `guildMemberUpdate`, `presenceUpdate`, `userUpdate`
-- **Channels:** `channelCreate`, `channelUpdate`, `channelDelete`, `channelPinsUpdate`, `webhookUpdate`
-- **Threads:** `threadCreate`, `threadUpdate`, `threadDelete`, `threadMembersUpdate`
-- **Roles:** `roleCreate`, `roleUpdate`, `roleDelete`
-- **Guilds:** `guildCreate`, `guildUpdate`, `guildDelete`, `guildBanAdd`, `guildBanRemove`, `guildIntegrationsUpdate`, `guildAuditLogEntryCreate`
-- **Emojis & Stickers:** `emojiCreate`, `emojiUpdate`, `emojiDelete`, `stickerCreate`, `stickerUpdate`, `stickerDelete`
-- **Voice:** `voiceStateUpdate`
-- **Scheduled Events:** `guildScheduledEventCreate`, `guildScheduledEventUpdate`, `guildScheduledEventDelete`, `guildScheduledEventUserAdd`, `guildScheduledEventUserRemove`
-- **AutoMod:** `autoModerationRuleCreate`, `autoModerationRuleUpdate`, `autoModerationRuleDelete`, `autoModerationActionExecution`
-- **Invites:** `inviteCreate`, `inviteDelete`
-- **Interactions:** `interactionCreate` (Slash commands, buttons, modals)
-- **Entitlements:** `entitlementCreate`, `entitlementUpdate`, `entitlementDelete`
-- **Other:** `typingStart`, `stageInstanceCreate`, `stageInstanceUpdate`, `stageInstanceDelete`
+**Supported Events (45+):** Messages, Reactions, Members, Channels, Threads, Roles, Guilds, Emojis, Voice, Scheduled Events, AutoMod, Invites, Interactions, and more.
 
 ## Discord Bot Setup
 
 1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new application
-3. Go to Bot section and create a bot
-4. Enable **ALL Privileged Gateway Intents** to support all features:
+2. Create a new application and bot
+3. Enable **ALL Privileged Gateway Intents**:
    - Presence Intent
    - Server Members Intent
    - Message Content Intent
-5. The bot also requires standard intents (enabled by default in code):
-   - Guilds, Moderation, Emojis, Integrations, Webhooks, Invites, Voice States
-   - Message Reactions, Typing
-   - Scheduled Events, AutoMod
-   - Message Polls
-6. Copy the token to your `.env` file
-7. Invite the bot to your server with `Administrator` permissions for full functionality
+4. Copy the token to your `.env` file
+5. Invite the bot with `Administrator` permissions
 
-## Documentation
+## Project Structure
 
-Visit the [documentation](https://holodocs.pages.dev/) for more details.
+```
+holobridge/
+├── bin/holo.js          # CLI tool
+├── plugins/             # Plugin directory
+├── src/
+│   ├── api/             # REST API routes & middleware
+│   ├── discord/         # Discord client & events
+│   ├── plugins/         # Plugin manager
+│   └── types/           # TypeScript types
+├── Dockerfile           # Docker build
+└── docker-compose.yml   # Docker Compose config
+```
+
+## Resources
+
+- [Use Cases](USE_CASES.md) - Creative ways to use HoloBridge
+- [Plugin Guide](plugins/README.md) - How to build plugins
+- [Documentation](https://holodocs.pages.dev/) - Full API docs
 
 ## License
 
 MIT
+

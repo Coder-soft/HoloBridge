@@ -642,7 +642,7 @@ export interface InviteDeleteEvent {
     guildId: string | null;
     data: {
         code: string;
-        channelId: string;
+        channelId: string | null;
         guildId: string | null;
     };
 }

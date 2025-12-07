@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { config } from '../config/index.js';
 import { authMiddleware, errorHandler, notFoundHandler } from './middleware/auth.js';
+import { rateLimiter } from './middleware/rateLimit.js';
 import { setupWebSocketEvents } from './websocket/events.js';
 import { setSocketServer } from '../discord/events/index.js';
 import type {
@@ -26,11 +27,30 @@ import stageInstancesRouter from './routes/stage-instances.js';
 import invitesRouter from './routes/invites.js';
 import webhooksRouter from './routes/webhooks.js';
 import emojisRouter from './routes/emojis.js';
+import type { Application } from 'express';
+import type { Server as HttpServer } from 'http';
+
+/**
+ * API Server instance type
+ */
+export interface ApiServerInstance {
+    app: Application;
+    httpServer: HttpServer;
+    io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+}
+
+// Store server instance for reuse
+let serverInstance: ApiServerInstance | null = null;
 
 /**
  * Create and configure the API server
  */
-export function createApiServer() {
+export function createApiServer(): ApiServerInstance {
+    // Return existing instance if already created
+    if (serverInstance) {
+        return serverInstance;
+    }
+
     const app = express();
     const httpServer = createServer(app);
 
@@ -53,6 +73,9 @@ export function createApiServer() {
     app.get('/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
+
+    // Apply rate limiting globally (before auth)
+    app.use('/api', rateLimiter());
 
     // Apply authentication to all /api routes
     app.use('/api', authMiddleware);
@@ -81,7 +104,10 @@ export function createApiServer() {
     // Connect socket server to Discord event broadcaster
     setSocketServer(io);
 
-    return { app, httpServer, io };
+    // Store instance
+    serverInstance = { app, httpServer, io };
+
+    return serverInstance;
 }
 
 /**
