@@ -19,6 +19,13 @@ import membersRouter from './routes/members.js';
 import messagesRouter from './routes/messages.js';
 import channelsRouter from './routes/channels.js';
 import rolesRouter from './routes/roles.js';
+import stickersRouter from './routes/stickers.js';
+import scheduledEventsRouter from './routes/scheduled-events.js';
+import autoModRouter from './routes/automod.js';
+import stageInstancesRouter from './routes/stage-instances.js';
+import invitesRouter from './routes/invites.js';
+import webhooksRouter from './routes/webhooks.js';
+import emojisRouter from './routes/emojis.js';
 
 /**
  * Create and configure the API server
@@ -56,6 +63,13 @@ export function createApiServer() {
     app.use('/api/guilds/:guildId/roles', rolesRouter);
     app.use('/api/channels/:channelId/messages', messagesRouter);
     app.use('/api/channels', channelsRouter);
+    app.use('/api/guilds/:guildId/stickers', stickersRouter);
+    app.use('/api/guilds/:guildId/scheduled-events', scheduledEventsRouter);
+    app.use('/api/guilds/:guildId/auto-moderation', autoModRouter);
+    app.use('/api/guilds/:guildId/emojis', emojisRouter);
+    app.use('/api/stage-instances', stageInstancesRouter);
+    app.use('/api/invites', invitesRouter);
+    app.use('/api/webhooks', webhooksRouter);
 
     // Error handlers
     app.use(notFoundHandler);
