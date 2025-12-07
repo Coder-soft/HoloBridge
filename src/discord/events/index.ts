@@ -182,13 +182,15 @@ export function registerDiscordEvents(): void {
     discordClient.on('messagePollVoteAdd', (pollAnswer, userId) => {
         const poll = pollAnswer.poll;
         const message = poll?.message;
+        if (!message) return; // Skip if message is not available
+        
         broadcastEvent({
             event: 'messagePollVoteAdd',
-            guildId: message?.guildId ?? null,
+            guildId: message.guildId ?? null,
             data: {
-                messageId: message?.id ?? '',
-                channelId: message?.channelId ?? '',
-                guildId: message?.guildId ?? null,
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId ?? null,
                 userId,
                 answerId: pollAnswer.id,
             },
@@ -198,13 +200,15 @@ export function registerDiscordEvents(): void {
     discordClient.on('messagePollVoteRemove', (pollAnswer, userId) => {
         const poll = pollAnswer.poll;
         const message = poll?.message;
+        if (!message) return; // Skip if message is not available
+        
         broadcastEvent({
             event: 'messagePollVoteRemove',
-            guildId: message?.guildId ?? null,
+            guildId: message.guildId ?? null,
             data: {
-                messageId: message?.id ?? '',
-                channelId: message?.channelId ?? '',
-                guildId: message?.guildId ?? null,
+                messageId: message.id,
+                channelId: message.channelId,
+                guildId: message.guildId ?? null,
                 userId,
                 answerId: pollAnswer.id,
             },
@@ -720,7 +724,7 @@ export function registerDiscordEvents(): void {
             guildId: invite.guild?.id ?? null,
             data: {
                 code: invite.code,
-                channelId: invite.channel?.id ?? '',
+                channelId: invite.channel?.id ?? null,
                 guildId: invite.guild?.id ?? null,
             },
         });
