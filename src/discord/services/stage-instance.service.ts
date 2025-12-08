@@ -1,7 +1,8 @@
+import { ChannelType } from 'discord.js';
+import type { StageInstanceCreateOptions, StageInstanceEditOptions } from 'discord.js';
 import { discordClient } from '../client.js';
 import { serializeStageInstance } from '../serializers.js';
 import type { SerializedStageInstance } from '../../types/discord.types.js';
-import type { StageInstanceCreateOptions, StageInstanceEditOptions } from 'discord.js';
 
 export class StageInstanceService {
     /**
@@ -27,7 +28,7 @@ export class StageInstanceService {
         if (!channel || !channel.isVoiceBased() || !channel.guild) return null;
 
         // Only stage channels can have stage instances
-        if (channel.type !== 13) return null; // 13 = ChannelType.GuildStageVoice
+        if (channel.type !== ChannelType.GuildStageVoice) return null;
 
         try {
             const stageInstance = await channel.guild.stageInstances.create(channel, {

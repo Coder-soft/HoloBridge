@@ -249,24 +249,31 @@ Examples:
 const args = process.argv.slice(2);
 const command = args[0];
 
-switch (command) {
-    case 'start':
-        commandStart(args.slice(1));
-        break;
-    case 'doctor':
-        commandDoctor();
-        break;
-    case 'init':
-        commandInit();
-        break;
-    case 'help':
-    case '--help':
-    case '-h':
-    case undefined:
-        showHelp();
-        break;
-    default:
-        log(`Unknown command: ${command}`, 'red');
-        showHelp();
+(async () => {
+    try {
+        switch (command) {
+            case 'start':
+                await commandStart(args.slice(1));
+                break;
+            case 'doctor':
+                await commandDoctor();
+                break;
+            case 'init':
+                await commandInit();
+                break;
+            case 'help':
+            case '--help':
+            case '-h':
+            case undefined:
+                showHelp();
+                break;
+            default:
+                log(`Unknown command: ${command}`, 'red');
+                showHelp();
+                process.exit(1);
+        }
+    } catch (err) {
+        log(`Error: ${err.message}`, 'red');
         process.exit(1);
-}
+    }
+})();

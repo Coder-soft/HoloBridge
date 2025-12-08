@@ -189,8 +189,32 @@ export class PluginManager {
                 delete: (path, ...handlers) => {
                     pluginSubRouter!.delete(path, ...handlers.map(h => withErrorHandler(h, name)));
                 },
-                use: (...handlers) => {
-                    pluginSubRouter!.use(...handlers.map(h => withErrorHandler(h, name)));
+                use: (...args: unknown[]) => {
+                    // Helper to wrap a single handler function
+                    const wrapHandler = (handler: unknown): unknown => {
+                        if (typeof handler === 'function') {
+                            return withErrorHandler(handler as Parameters<typeof withErrorHandler>[0], name);
+                        }
+                        if (Array.isArray(handler)) {
+                            return handler.map(wrapHandler);
+                        }
+                        return handler;
+                    };
+
+                    // Determine if first argument is a path
+                    const firstArg = args[0];
+                    const isPath = typeof firstArg === 'string' || firstArg instanceof RegExp;
+
+                    let normalizedArgs: unknown[];
+                    if (isPath) {
+                        // First arg is path, rest are handlers
+                        normalizedArgs = [firstArg, ...args.slice(1).map(wrapHandler)];
+                    } else {
+                        // All args are handlers (or arrays of handlers)
+                        normalizedArgs = args.map(wrapHandler);
+                    }
+
+                    pluginSubRouter!.use(...normalizedArgs as Parameters<typeof pluginSubRouter.use>);
                 },
             };
 

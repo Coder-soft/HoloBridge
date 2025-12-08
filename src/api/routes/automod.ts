@@ -1,7 +1,18 @@
 import { Router } from 'express';
+import type { Request } from 'express';
 import { autoModService } from '../../discord/services/index.js';
 import type { ApiResponse } from '../../types/api.types.js';
 import type { SerializedAutoModRule } from '../../types/discord.types.js';
+
+/** Route params for guild-level endpoints */
+interface GuildParams {
+    guildId: string;
+}
+
+/** Route params for rule-specific endpoints */
+interface GuildRuleParams extends GuildParams {
+    ruleId: string;
+}
 
 const router = Router({ mergeParams: true });
 
@@ -9,10 +20,10 @@ const router = Router({ mergeParams: true });
  * GET /api/guilds/:guildId/auto-moderation/rules
  * List all auto-moderation rules in a guild
  */
-router.get('/rules', async (req, res) => {
+router.get('/rules', async (req: Request<GuildParams>, res) => {
     try {
-        const { guildId } = req.params as any;
-        const rules = await autoModService.getAutoModRules(guildId as string);
+        const { guildId } = req.params;
+        const rules = await autoModService.getAutoModRules(guildId);
         const response: ApiResponse<SerializedAutoModRule[]> = { success: true, data: rules };
         res.json(response);
     } catch (error) {
@@ -25,10 +36,10 @@ router.get('/rules', async (req, res) => {
  * GET /api/guilds/:guildId/auto-moderation/rules/:ruleId
  * Get a specific auto-moderation rule
  */
-router.get('/rules/:ruleId', async (req, res) => {
+router.get('/rules/:ruleId', async (req: Request<GuildRuleParams>, res) => {
     try {
-        const { guildId, ruleId } = req.params as any;
-        const rule = await autoModService.getAutoModRule(guildId as string, ruleId as string);
+        const { guildId, ruleId } = req.params;
+        const rule = await autoModService.getAutoModRule(guildId, ruleId);
 
         if (!rule) {
             res.status(404).json({ success: false, error: 'Rule not found', code: 'RULE_NOT_FOUND' });
@@ -47,10 +58,10 @@ router.get('/rules/:ruleId', async (req, res) => {
  * POST /api/guilds/:guildId/auto-moderation/rules
  * Create a new auto-moderation rule
  */
-router.post('/rules', async (req, res) => {
+router.post('/rules', async (req: Request<GuildParams>, res) => {
     try {
-        const { guildId } = req.params as any;
-        const rule = await autoModService.createAutoModRule(guildId as string, req.body);
+        const { guildId } = req.params;
+        const rule = await autoModService.createAutoModRule(guildId, req.body);
 
         if (!rule) {
             res.status(400).json({ success: false, error: 'Failed to create rule', code: 'RULE_CREATE_FAILED' });
@@ -69,10 +80,10 @@ router.post('/rules', async (req, res) => {
  * PATCH /api/guilds/:guildId/auto-moderation/rules/:ruleId
  * Edit an auto-moderation rule
  */
-router.patch('/rules/:ruleId', async (req, res) => {
+router.patch('/rules/:ruleId', async (req: Request<GuildRuleParams>, res) => {
     try {
-        const { guildId, ruleId } = req.params as any;
-        const rule = await autoModService.editAutoModRule(guildId as string, ruleId as string, req.body);
+        const { guildId, ruleId } = req.params;
+        const rule = await autoModService.editAutoModRule(guildId, ruleId, req.body);
 
         if (!rule) {
             res.status(404).json({ success: false, error: 'Rule not found or failed to update', code: 'RULE_UPDATE_FAILED' });
@@ -91,10 +102,10 @@ router.patch('/rules/:ruleId', async (req, res) => {
  * DELETE /api/guilds/:guildId/auto-moderation/rules/:ruleId
  * Delete an auto-moderation rule
  */
-router.delete('/rules/:ruleId', async (req, res) => {
+router.delete('/rules/:ruleId', async (req: Request<GuildRuleParams>, res) => {
     try {
-        const { guildId, ruleId } = req.params as any;
-        const success = await autoModService.deleteAutoModRule(guildId as string, ruleId as string);
+        const { guildId, ruleId } = req.params;
+        const success = await autoModService.deleteAutoModRule(guildId, ruleId);
 
         if (!success) {
             res.status(404).json({ success: false, error: 'Rule not found or failed to delete', code: 'RULE_DELETE_FAILED' });

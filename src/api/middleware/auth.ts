@@ -20,7 +20,7 @@ function findApiKey(key: string): ApiKeyRecord | null {
         return {
             ...found,
             scopes: found.scopes as ApiScope[],
-            createdAt: new Date(),
+            createdAt: found.createdAt || new Date(),
         };
     }
 

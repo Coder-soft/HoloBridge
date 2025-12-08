@@ -98,7 +98,19 @@ export default {
 
             const { title, content } = req.body;
 
-            if (title !== undefined) note.title = title;
+            // Validate title if provided
+            if (title !== undefined) {
+                if (typeof title !== 'string' || title.trim().length === 0) {
+                    res.status(400).json({
+                        success: false,
+                        error: 'Title must be a non-empty string',
+                        code: 'VALIDATION_ERROR',
+                    });
+                    return;
+                }
+                note.title = title;
+            }
+
             if (content !== undefined) note.content = content;
             note.updatedAt = new Date().toISOString();
 

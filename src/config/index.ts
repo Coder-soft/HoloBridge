@@ -9,6 +9,7 @@ const apiKeySchema = z.object({
     name: z.string(),
     key: z.string(),
     scopes: z.array(z.string()),
+    createdAt: z.coerce.date().optional(),
 });
 
 const configSchema = z.object({
@@ -73,16 +74,34 @@ function loadConfig(): Config {
 }
 
 /**
- * Parse API_KEYS environment variable (JSON array)
+ * Parse API_KEYS environment variable (JSON array) with schema validation
  */
 function parseApiKeys(envVar: string | undefined): z.infer<typeof apiKeySchema>[] {
     if (!envVar) return [];
+
+    // Parse JSON
+    let parsed: unknown;
     try {
-        return JSON.parse(envVar);
+        parsed = JSON.parse(envVar);
     } catch {
-        console.warn('⚠️ Failed to parse API_KEYS env var. Using empty array.');
+        console.warn('⚠️ Failed to parse API_KEYS env var as JSON. Using empty array.');
         return [];
     }
+
+    // Validate against schema
+    const apiKeysArraySchema = z.array(apiKeySchema);
+    const result = apiKeysArraySchema.safeParse(parsed);
+
+    if (!result.success) {
+        console.warn('⚠️ API_KEYS validation failed:');
+        result.error.issues.forEach((issue) => {
+            console.warn(`  - ${issue.path.join('.')}: ${issue.message}`);
+        });
+        console.warn('Using empty array for API keys.');
+        return [];
+    }
+
+    return result.data;
 }
 
 export const config = loadConfig();
