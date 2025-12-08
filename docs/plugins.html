@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugin System - Holo Bridge</title>
+    <meta name="description"
+        content="Create plugins for HoloBridge with type-safe event handling, REST endpoints, and inter-plugin communication.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">Holo Bridge</a>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="getting-started.html">Getting Started</a>
+                <a href="api-reference.html">API Reference</a>
+                <a href="websocket.html">WebSocket</a>
+                <a href="plugins.html" class="active">Plugins</a>
+                <a href="security.html">Security</a>
+                <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Plugin System</h1>
+            <p>Extend HoloBridge with custom functionality using the powerful plugin system. Plugins can add REST API
+                endpoints, listen to Discord events, and communicate with other plugins via a typed event bus.</p>
+
+            <div class="alert alert-info">
+                <strong>ℹ️ Note:</strong> Plugins are JavaScript/ESM modules placed in the <code>plugins/</code>
+                directory. They are automatically loaded on startup.
+            </div>
+
+            <h2>Quick Start</h2>
+            <p>Create a file in the <code>plugins/</code> directory with a <code>.js</code> or <code>.mjs</code>
+                extension:</p>
+
+            <h3>plugins/my-plugin.js</h3>
+            <pre><code>export default {
+    metadata: {
+        name: 'my-plugin',
+        version: '1.0.0',
+        author: 'Your Name',
+        description: 'A sample HoloBridge plugin'
+    },
+
+    // Optional: Register REST endpoints
+    routes: (router, ctx) => {
+        router.get('/status', (req, res) => {
+            res.json({ status: 'ok', plugin: 'my-plugin' });
+        });
+    },
+
+    // Optional: Subscribe to events
+    events: (on, ctx) => [
+        on.onDiscord('messageCreate', (msg) => {
+            ctx.logger.info('New message:', msg.content);
+        }),
+    ],
+
+    // Optional: Called when plugin loads
+    onLoad: (ctx) => {
+        ctx.logger.info('Plugin loaded!');
+    },
+
+    // Optional: Called when plugin unloads
+    onUnload: () => {
+        console.log('Plugin unloaded!');
+    }
+};</code></pre>
+
+            <h2>Plugin Structure</h2>
+
+            <h3>Plugin Metadata</h3>
+            <p>Every plugin must export an object with a <code>metadata</code> property:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>name</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>Unique plugin identifier (used in routes and logs)</td>
+                    </tr>
+                    <tr>
+                        <td><code>version</code></td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>Semantic version (e.g., "1.0.0")</td>
+                    </tr>
+                    <tr>
+                        <td><code>author</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Plugin author name</td>
+                    </tr>
+                    <tr>
+                        <td><code>description</code></td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Short description of the plugin</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Lifecycle Hooks</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hook</th>
+                        <th>When Called</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>onLoad(ctx)</code></td>
+                        <td>After plugin is loaded</td>
+                        <td>Initialize state, setup connections</td>
+                    </tr>
+                    <tr>
+                        <td><code>onUnload()</code></td>
+                        <td>Before plugin is unloaded</td>
+                        <td>Cleanup resources, close connections</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Plugin Context</h2>
+            <p>The <code>ctx</code> object provides access to core HoloBridge services:</p>
+            <pre><code>interface PluginContext {
+    client: Client;              // Discord.js client
+    io: SocketIOServer;          // Socket.IO server
+    config: Config;              // Application configuration
+    app: Application;            // Express application
+    eventBus: PluginEventBus;    // Event bus for inter-plugin communication
+    logger: PluginLogger;        // Logging utility
+    log: (message: string) => void;  // Legacy logger
+    getPlugin: (name: string) => PluginMetadata | undefined;
+    listPlugins: () => string[];
+}</code></pre>
+
+            <h3>Logger</h3>
+            <p>Use the built-in logger for consistent output:</p>
+            <pre><code>ctx.logger.info('Information message');
+ctx.logger.warn('Warning message');
+ctx.logger.error('Error message');
+ctx.logger.debug('Debug message (only in debug mode)');</code></pre>
+
+            <hr>
+
+            <h2>REST API Routes</h2>
+            <p>Plugins can register REST API endpoints that are automatically mounted at
+                <code>/api/plugins/{plugin-name}/</code>:
+            </p>
+
+            <pre><code>routes: (router, ctx) => {
+    // GET /api/plugins/my-plugin/status
+    router.get('/status', (req, res) => {
+        res.json({ status: 'ok' });
+    });
+
+    // POST /api/plugins/my-plugin/action
+    router.post('/action', (req, res) => {
+        const { userId, action } = req.body;
+        // Handle the action
+        res.json({ success: true });
+    });
+
+    // Routes support all HTTP methods
+    router.put('/update', handler);
+    router.patch('/modify', handler);
+    router.delete('/remove', handler);
+
+    // Add middleware
+    router.use(myMiddleware);
+}</code></pre>
+
+            <div class="alert alert-info">
+                <strong>ℹ️ Automatic Error Handling:</strong> Plugin routes are automatically wrapped with error
+                handling. Errors are caught and returned as JSON responses.
+            </div>
+
+            <hr>
+
+            <h2>Event Bus</h2>
+            <p>HoloBridge provides a typed event bus for inter-plugin communication with three event categories:</p>
+
+            <div class="cards">
+                <div class="card">
+                    <h4>🎮 Discord Events</h4>
+                    <p>Events forwarded from the Discord gateway (prefixed with <code>discord:</code>)</p>
+                </div>
+                <div class="card">
+                    <h4>🔌 Plugin Events</h4>
+                    <p>Lifecycle events like plugin load/unload (prefixed with <code>plugin:</code>)</p>
+                </div>
+                <div class="card">
+                    <h4>✨ Custom Events</h4>
+                    <p>Events emitted by plugins for inter-plugin communication (prefixed with <code>custom:</code>)</p>
+                </div>
+            </div>
+
+            <h3>Subscribing to Events</h3>
+            <p>Use the <code>events</code> hook to subscribe to events. Return an array of subscriptions for automatic
+                cleanup:</p>
+
+            <pre><code>events: (on, ctx) => [
+    // Subscribe to Discord events
+    on.onDiscord('messageCreate', (message) => {
+        ctx.logger.info('New message:', message.content);
+    }),
+
+    on.onDiscord('guildMemberAdd', (member) => {
+        ctx.logger.info('New member joined:', member.user.username);
+    }),
+
+    // Subscribe to custom events from other plugins
+    on.onCustom('moderation:user-warned', (data) => {
+        ctx.logger.info(`User ${data.userId} was warned`);
+    }),
+
+    // Subscribe to plugin lifecycle events
+    on.onPluginLoaded((data) => {
+        ctx.logger.info(`Plugin loaded: ${data.name} v${data.version}`);
+    }),
+
+    on.onPluginUnloaded((data) => {
+        ctx.logger.info(`Plugin unloaded: ${data.name}`);
+    }),
+]</code></pre>
+
+            <h3>Emitting Custom Events</h3>
+            <p>Plugins can emit custom events for other plugins to consume:</p>
+            <pre><code>events: (on, ctx) => {
+    // Emit a custom event
+    on.emit('my-plugin:action-performed', {
+        userId: '123456789',
+        action: 'ban',
+        reason: 'Spam'
+    });
+
+    return [];
+}</code></pre>
+
+            <h3>Available Discord Events</h3>
+            <p>All standard Discord.js events are available. Common events include:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Data</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>messageCreate</code></td>
+                        <td>Serialized Message</td>
+                        <td>New message sent</td>
+                    </tr>
+                    <tr>
+                        <td><code>messageUpdate</code></td>
+                        <td>Serialized Message</td>
+                        <td>Message edited</td>
+                    </tr>
+                    <tr>
+                        <td><code>messageDelete</code></td>
+                        <td>Message info</td>
+                        <td>Message deleted</td>
+                    </tr>
+                    <tr>
+                        <td><code>guildMemberAdd</code></td>
+                        <td>Serialized Member</td>
+                        <td>Member joined</td>
+                    </tr>
+                    <tr>
+                        <td><code>guildMemberRemove</code></td>
+                        <td>Serialized Member</td>
+                        <td>Member left/kicked</td>
+                    </tr>
+                    <tr>
+                        <td><code>guildMemberUpdate</code></td>
+                        <td>Serialized Member</td>
+                        <td>Member updated</td>
+                    </tr>
+                    <tr>
+                        <td><code>channelCreate</code></td>
+                        <td>Serialized Channel</td>
+                        <td>Channel created</td>
+                    </tr>
+                    <tr>
+                        <td><code>channelUpdate</code></td>
+                        <td>Serialized Channel</td>
+                        <td>Channel updated</td>
+                    </tr>
+                    <tr>
+                        <td><code>channelDelete</code></td>
+                        <td>Channel info</td>
+                        <td>Channel deleted</td>
+                    </tr>
+                    <tr>
+                        <td><code>roleCreate</code></td>
+                        <td>Serialized Role</td>
+                        <td>Role created</td>
+                    </tr>
+                    <tr>
+                        <td><code>roleUpdate</code></td>
+                        <td>Serialized Role</td>
+                        <td>Role updated</td>
+                    </tr>
+                    <tr>
+                        <td><code>roleDelete</code></td>
+                        <td>Role info</td>
+                        <td>Role deleted</td>
+                    </tr>
+                    <tr>
+                        <td><code>voiceStateUpdate</code></td>
+                        <td>Voice state data</td>
+                        <td>Voice state changed</td>
+                    </tr>
+                    <tr>
+                        <td><code>guildBanAdd</code></td>
+                        <td>Ban info</td>
+                        <td>Member banned</td>
+                    </tr>
+                    <tr>
+                        <td><code>guildBanRemove</code></td>
+                        <td>Ban info</td>
+                        <td>Member unbanned</td>
+                    </tr>
+                    <tr>
+                        <td><code>threadCreate</code></td>
+                        <td>Serialized Thread</td>
+                        <td>Thread created</td>
+                    </tr>
+                    <tr>
+                        <td><code>threadUpdate</code></td>
+                        <td>Serialized Thread</td>
+                        <td>Thread updated</td>
+                    </tr>
+                    <tr>
+                        <td><code>threadDelete</code></td>
+                        <td>Thread info</td>
+                        <td>Thread deleted</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Plugin Lifecycle Events</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Data</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>plugin:loaded</code></td>
+                        <td><code>{ name, version }</code></td>
+                        <td>A plugin was loaded</td>
+                    </tr>
+                    <tr>
+                        <td><code>plugin:unloaded</code></td>
+                        <td><code>{ name }</code></td>
+                        <td>A plugin was unloaded</td>
+                    </tr>
+                    <tr>
+                        <td><code>plugin:error</code></td>
+                        <td><code>{ name, error }</code></td>
+                        <td>A plugin encountered an error</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h2>Direct Event Bus Access</h2>
+            <p>For advanced use cases, access the event bus directly via <code>ctx.eventBus</code>:</p>
+
+            <pre><code>onLoad: (ctx) => {
+    const { eventBus } = ctx;
+
+    // Subscribe to any event
+    const subscription = eventBus.subscribe('custom:my-event', (data) => {
+        console.log('Received:', data);
+    });
+
+    // Subscribe once
+    eventBus.subscribeOnce('discord:ready', () => {
+        console.log('Bot is ready!');
+    });
+
+    // Emit Discord events (typically done by core)
+    eventBus.emitDiscord('messageCreate', messageData);
+
+    // Emit custom events
+    eventBus.emitCustom('my-plugin:action', { key: 'value' });
+
+    // Emit plugin lifecycle events
+    eventBus.emitPlugin('plugin:error', { name: 'my-plugin', error: new Error('Oops') });
+
+    // Get listener counts (for debugging)
+    console.log(eventBus.getListenerCounts());
+}</code></pre>
+
+            <h3>Event Bus Methods</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>onDiscord(event, handler)</code></td>
+                        <td>Subscribe to a Discord event</td>
+                    </tr>
+                    <tr>
+                        <td><code>onCustom(event, handler)</code></td>
+                        <td>Subscribe to a custom event</td>
+                    </tr>
+                    <tr>
+                        <td><code>onPlugin(event, handler)</code></td>
+                        <td>Subscribe to a plugin lifecycle event</td>
+                    </tr>
+                    <tr>
+                        <td><code>emitDiscord(event, data)</code></td>
+                        <td>Emit a Discord event</td>
+                    </tr>
+                    <tr>
+                        <td><code>emitCustom(event, data)</code></td>
+                        <td>Emit a custom event</td>
+                    </tr>
+                    <tr>
+                        <td><code>emitPlugin(event, data)</code></td>
+                        <td>Emit a plugin lifecycle event</td>
+                    </tr>
+                    <tr>
+                        <td><code>subscribe(event, handler)</code></td>
+                        <td>Subscribe to any event (returns subscription object)</td>
+                    </tr>
+                    <tr>
+                        <td><code>subscribeOnce(event, handler)</code></td>
+                        <td>Subscribe once and automatically unsubscribe</td>
+                    </tr>
+                    <tr>
+                        <td><code>unsubscribeAll(subscriptions)</code></td>
+                        <td>Unsubscribe from multiple events at once</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <h2>Inter-Plugin Communication</h2>
+            <p>Plugins can discover and interact with other loaded plugins:</p>
+
+            <pre><code>onLoad: (ctx) => {
+    // List all loaded plugins
+    const plugins = ctx.listPlugins();
+    ctx.logger.info('Loaded plugins:', plugins);
+
+    // Get another plugin's metadata
+    const modPlugin = ctx.getPlugin('moderation');
+    if (modPlugin) {
+        ctx.logger.info(`Moderation plugin v${modPlugin.version} is loaded`);
+    }
+}</code></pre>
+
+            <h3>Example: Plugin Communication Pattern</h3>
+            <pre><code>// Plugin A: moderation.js
+export default {
+    metadata: { name: 'moderation', version: '1.0.0' },
+    
+    routes: (router, ctx) => {
+        router.post('/warn', (req, res) => {
+            const { userId, reason } = req.body;
+            
+            // Emit event for other plugins
+            ctx.eventBus.emitCustom('moderation:user-warned', {
+                userId,
+                reason,
+                timestamp: Date.now()
+            });
+            
+            res.json({ success: true });
+        });
+    }
+};
+
+// Plugin B: logging.js
+export default {
+    metadata: { name: 'logging', version: '1.0.0' },
+    
+    events: (on, ctx) => [
+        // Listen for moderation events
+        on.onCustom('moderation:user-warned', (data) => {
+            ctx.logger.info(`[AUDIT] User ${data.userId} warned: ${data.reason}`);
+            // Log to database, send to webhook, etc.
+        }),
+    ]
+};</code></pre>
+
+            <hr>
+
+            <h2>Complete Plugin Example</h2>
+            <p>Here's a complete example of a plugin that demonstrates all features:</p>
+
+            <pre><code>// plugins/welcome.js
+export default {
+    metadata: {
+        name: 'welcome',
+        version: '1.0.0',
+        author: 'HoloBridge',
+        description: 'Welcome new members with customizable messages'
+    },
+
+    // Configuration stored in memory (use a database in production)
+    _config: {
+        enabled: true,
+        channelId: null,
+        message: 'Welcome to the server, {user}!'
+    },
+
+    routes: (router, ctx) => {
+        // GET /api/plugins/welcome/config
+        router.get('/config', (req, res) => {
+            res.json({
+                success: true,
+                data: this._config
+            });
+        });
+
+        // PATCH /api/plugins/welcome/config
+        router.patch('/config', (req, res) => {
+            const { enabled, channelId, message } = req.body;
+            
+            if (enabled !== undefined) this._config.enabled = enabled;
+            if (channelId !== undefined) this._config.channelId = channelId;
+            if (message !== undefined) this._config.message = message;
+
+            res.json({ success: true, data: this._config });
+        });
+    },
+
+    events: (on, ctx) => [
+        on.onDiscord('guildMemberAdd', async (member) => {
+            if (!this._config.enabled || !this._config.channelId) return;
+
+            try {
+                const channel = await ctx.client.channels.fetch(this._config.channelId);
+                if (channel?.isTextBased()) {
+                    const message = this._config.message
+                        .replace('{user}', `<@${member.user.id}>`)
+                        .replace('{username}', member.user.username)
+                        .replace('{server}', member.guild.name);
+                    
+                    await channel.send(message);
+                    ctx.logger.info(`Welcomed ${member.user.username}`);
+                }
+            } catch (error) {
+                ctx.logger.error('Failed to send welcome message:', error);
+            }
+        }),
+    ],
+
+    onLoad: (ctx) => {
+        ctx.logger.info('Welcome plugin loaded!');
+        ctx.logger.info(`Routes available at /api/plugins/welcome/`);
+    },
+
+    onUnload: () => {
+        console.log('[welcome] Plugin unloaded');
+    }
+};</code></pre>
+
+            <hr>
+
+            <h2>Best Practices</h2>
+
+            <div class="alert alert-success">
+                <h4>✅ Do:</h4>
+                <ul>
+                    <li>Return event subscriptions from the <code>events</code> hook for automatic cleanup</li>
+                    <li>Use <code>ctx.logger</code> for consistent, prefixed logging</li>
+                    <li>Handle errors gracefully in event handlers</li>
+                    <li>Use semantic versioning for your plugin version</li>
+                    <li>Namespace custom events with your plugin name (e.g., <code>my-plugin:event-name</code>)</li>
+                </ul>
+            </div>
+
+            <div class="alert alert-warning">
+                <h4>⚠️ Avoid:</h4>
+                <ul>
+                    <li>Blocking the event loop with synchronous operations</li>
+                    <li>Storing sensitive data in plugin state without encryption</li>
+                    <li>Using the deprecated <code>onEvent</code> hook (use <code>events</code> instead)</li>
+                    <li>Creating memory leaks by not cleaning up resources in <code>onUnload</code></li>
+                </ul>
+            </div>
+
+            <h2>Next Steps</h2>
+            <div class="cards">
+                <a href="api-reference.html" class="card">
+                    <h4>📖 API Reference</h4>
+                    <p>Explore the REST API that plugins can extend.</p>
+                </a>
+                <a href="websocket.html" class="card">
+                    <h4>⚡ WebSocket Events</h4>
+                    <p>See all available Discord events you can subscribe to.</p>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Holo Bridge &copy; 2025 - MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            if (current === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else if (current === 'light') {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const newTheme = prefersDark ? 'light' : 'dark';
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            }
+        }
+
+        (function () {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                document.documentElement.setAttribute('data-theme', saved);
+            }
+        })();
+    </script>
+</body>
+
+</html>
+</code></pre>
