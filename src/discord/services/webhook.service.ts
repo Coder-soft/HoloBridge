@@ -67,7 +67,17 @@ export class WebhookService {
     async editWebhook(webhookId: string, data: { name?: string; avatar?: string | null; channelId?: string }): Promise<SerializedWebhook | null> {
         try {
             const webhook = await discordClient.fetchWebhook(webhookId);
-            const updated = await webhook.edit(data);
+
+            // Extract channelId and build the edit payload with proper discord.js property names
+            const { channelId, ...rest } = data;
+            const editPayload: { name?: string; avatar?: string | null; channel?: string } = { ...rest };
+
+            // discord.js expects 'channel' not 'channelId' for moving webhooks
+            if (channelId) {
+                editPayload.channel = channelId;
+            }
+
+            const updated = await webhook.edit(editPayload);
             return serializeWebhook(updated);
         } catch {
             return null;

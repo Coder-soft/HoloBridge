@@ -30,6 +30,9 @@ RUN npm ci --production
 # Create plugins directory
 RUN mkdir -p plugins
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 # Expose API port
 EXPOSE 3000
 

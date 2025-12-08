@@ -26,11 +26,19 @@ export class StageInstanceService {
         const channel = discordClient.channels.cache.get(channelId);
         if (!channel || !channel.isVoiceBased() || !channel.guild) return null;
 
-        const stageInstance = await channel.guild.stageInstances.create(channel as any, {
-            topic,
-            ...options
-        });
-        return serializeStageInstance(stageInstance);
+        // Only stage channels can have stage instances
+        if (channel.type !== 13) return null; // 13 = ChannelType.GuildStageVoice
+
+        try {
+            const stageInstance = await channel.guild.stageInstances.create(channel, {
+                topic,
+                ...options
+            });
+            return serializeStageInstance(stageInstance);
+        } catch (error) {
+            console.error(`Failed to create stage instance for channel ${channelId}:`, error);
+            return null;
+        }
     }
 
     /**

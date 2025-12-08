@@ -11,8 +11,13 @@ export class EmojiService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return [];
 
-        const emojis = await guild.emojis.fetch();
-        return emojis.map(serializeGuildEmoji);
+        try {
+            const emojis = await guild.emojis.fetch();
+            return emojis.map(serializeGuildEmoji);
+        } catch (error) {
+            console.error(`Failed to fetch emojis for guild ${guildId}:`, error);
+            return [];
+        }
     }
 
     /**
@@ -37,8 +42,13 @@ export class EmojiService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return null;
 
-        const emoji = await guild.emojis.create(data);
-        return serializeGuildEmoji(emoji);
+        try {
+            const emoji = await guild.emojis.create(data);
+            return serializeGuildEmoji(emoji);
+        } catch (error) {
+            console.error(`Failed to create emoji in guild ${guildId}:`, error);
+            return null;
+        }
     }
 
     /**

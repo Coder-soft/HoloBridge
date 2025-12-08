@@ -10,10 +10,15 @@ const router = Router({ mergeParams: true });
  * List all auto-moderation rules in a guild
  */
 router.get('/rules', async (req, res) => {
-    const { guildId } = req.params as any;
-    const rules = await autoModService.getAutoModRules(guildId as string);
-    const response: ApiResponse<SerializedAutoModRule[]> = { success: true, data: rules };
-    res.json(response);
+    try {
+        const { guildId } = req.params as any;
+        const rules = await autoModService.getAutoModRules(guildId as string);
+        const response: ApiResponse<SerializedAutoModRule[]> = { success: true, data: rules };
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching auto-moderation rules:', error);
+        res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
+    }
 });
 
 /**
@@ -21,16 +26,21 @@ router.get('/rules', async (req, res) => {
  * Get a specific auto-moderation rule
  */
 router.get('/rules/:ruleId', async (req, res) => {
-    const { guildId, ruleId } = req.params as any;
-    const rule = await autoModService.getAutoModRule(guildId as string, ruleId as string);
+    try {
+        const { guildId, ruleId } = req.params as any;
+        const rule = await autoModService.getAutoModRule(guildId as string, ruleId as string);
 
-    if (!rule) {
-        res.status(404).json({ success: false, error: 'Rule not found', code: 'RULE_NOT_FOUND' });
-        return;
+        if (!rule) {
+            res.status(404).json({ success: false, error: 'Rule not found', code: 'RULE_NOT_FOUND' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching auto-moderation rule:', error);
+        res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
     }
-
-    const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
-    res.json(response);
 });
 
 /**
@@ -38,16 +48,21 @@ router.get('/rules/:ruleId', async (req, res) => {
  * Create a new auto-moderation rule
  */
 router.post('/rules', async (req, res) => {
-    const { guildId } = req.params as any;
-    const rule = await autoModService.createAutoModRule(guildId as string, req.body);
+    try {
+        const { guildId } = req.params as any;
+        const rule = await autoModService.createAutoModRule(guildId as string, req.body);
 
-    if (!rule) {
-        res.status(400).json({ success: false, error: 'Failed to create rule', code: 'RULE_CREATE_FAILED' });
-        return;
+        if (!rule) {
+            res.status(400).json({ success: false, error: 'Failed to create rule', code: 'RULE_CREATE_FAILED' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
+        res.status(201).json(response);
+    } catch (error) {
+        console.error('Error creating auto-moderation rule:', error);
+        res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
     }
-
-    const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
-    res.status(201).json(response);
 });
 
 /**
@@ -55,16 +70,21 @@ router.post('/rules', async (req, res) => {
  * Edit an auto-moderation rule
  */
 router.patch('/rules/:ruleId', async (req, res) => {
-    const { guildId, ruleId } = req.params as any;
-    const rule = await autoModService.editAutoModRule(guildId as string, ruleId as string, req.body);
+    try {
+        const { guildId, ruleId } = req.params as any;
+        const rule = await autoModService.editAutoModRule(guildId as string, ruleId as string, req.body);
 
-    if (!rule) {
-        res.status(404).json({ success: false, error: 'Rule not found or failed to update', code: 'RULE_UPDATE_FAILED' });
-        return;
+        if (!rule) {
+            res.status(404).json({ success: false, error: 'Rule not found or failed to update', code: 'RULE_UPDATE_FAILED' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
+        res.json(response);
+    } catch (error) {
+        console.error('Error updating auto-moderation rule:', error);
+        res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
     }
-
-    const response: ApiResponse<SerializedAutoModRule> = { success: true, data: rule };
-    res.json(response);
 });
 
 /**
@@ -72,15 +92,20 @@ router.patch('/rules/:ruleId', async (req, res) => {
  * Delete an auto-moderation rule
  */
 router.delete('/rules/:ruleId', async (req, res) => {
-    const { guildId, ruleId } = req.params as any;
-    const success = await autoModService.deleteAutoModRule(guildId as string, ruleId as string);
+    try {
+        const { guildId, ruleId } = req.params as any;
+        const success = await autoModService.deleteAutoModRule(guildId as string, ruleId as string);
 
-    if (!success) {
-        res.status(404).json({ success: false, error: 'Rule not found or failed to delete', code: 'RULE_DELETE_FAILED' });
-        return;
+        if (!success) {
+            res.status(404).json({ success: false, error: 'Rule not found or failed to delete', code: 'RULE_DELETE_FAILED' });
+            return;
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting auto-moderation rule:', error);
+        res.status(500).json({ success: false, error: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
     }
-
-    res.json({ success: true });
 });
 
 export default router;
