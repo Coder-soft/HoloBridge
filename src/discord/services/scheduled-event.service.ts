@@ -11,8 +11,13 @@ export class ScheduledEventService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return [];
 
-        const events = await guild.scheduledEvents.fetch();
-        return events.map(serializeScheduledEvent);
+        try {
+            const events = await guild.scheduledEvents.fetch();
+            return events.map(serializeScheduledEvent);
+        } catch (error) {
+            console.error(`Failed to fetch scheduled events for guild ${guildId}:`, error);
+            return [];
+        }
     }
 
     /**
@@ -37,8 +42,13 @@ export class ScheduledEventService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return null;
 
-        const event = await guild.scheduledEvents.create(data);
-        return serializeScheduledEvent(event);
+        try {
+            const event = await guild.scheduledEvents.create(data);
+            return serializeScheduledEvent(event);
+        } catch (error) {
+            console.error(`Failed to create scheduled event in guild ${guildId}:`, error);
+            return null;
+        }
     }
 
     /**

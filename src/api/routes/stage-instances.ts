@@ -11,15 +11,21 @@ const router = Router();
  */
 router.get('/:channelId', async (req, res) => {
     const { channelId } = req.params;
-    const stageInstance = await stageInstanceService.getStageInstance(channelId);
 
-    if (!stageInstance) {
-        res.status(404).json({ success: false, error: 'Stage instance not found', code: 'STAGE_INSTANCE_NOT_FOUND' });
-        return;
+    try {
+        const stageInstance = await stageInstanceService.getStageInstance(channelId);
+
+        if (!stageInstance) {
+            res.status(404).json({ success: false, error: 'Stage instance not found', code: 'STAGE_INSTANCE_NOT_FOUND' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
+        res.json(response);
+    } catch (error) {
+        console.error('Error fetching stage instance:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch stage instance', code: 'STAGE_INSTANCE_FETCH_ERROR' });
     }
-
-    const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
-    res.json(response);
 });
 
 /**
@@ -34,15 +40,20 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    const stageInstance = await stageInstanceService.createStageInstance(channelId, topic, options);
+    try {
+        const stageInstance = await stageInstanceService.createStageInstance(channelId, topic, options);
 
-    if (!stageInstance) {
-        res.status(400).json({ success: false, error: 'Failed to create stage instance', code: 'STAGE_INSTANCE_CREATE_FAILED' });
-        return;
+        if (!stageInstance) {
+            res.status(400).json({ success: false, error: 'Failed to create stage instance', code: 'STAGE_INSTANCE_CREATE_FAILED' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
+        res.status(201).json(response);
+    } catch (error) {
+        console.error('Error creating stage instance:', error);
+        res.status(500).json({ success: false, error: 'Failed to create stage instance', code: 'STAGE_INSTANCE_CREATE_ERROR' });
     }
-
-    const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
-    res.status(201).json(response);
 });
 
 /**
@@ -51,15 +62,36 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:channelId', async (req, res) => {
     const { channelId } = req.params;
-    const stageInstance = await stageInstanceService.editStageInstance(channelId, req.body);
 
-    if (!stageInstance) {
-        res.status(404).json({ success: false, error: 'Stage instance not found or failed to update', code: 'STAGE_INSTANCE_UPDATE_FAILED' });
+    // Validate request body - only allow valid fields
+    const allowedFields = ['topic', 'privacyLevel'];
+    const updates: Record<string, unknown> = {};
+
+    for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+        }
+    }
+
+    if (Object.keys(updates).length === 0) {
+        res.status(400).json({ success: false, error: 'No valid fields provided', code: 'INVALID_REQUEST_BODY' });
         return;
     }
 
-    const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
-    res.json(response);
+    try {
+        const stageInstance = await stageInstanceService.editStageInstance(channelId, updates);
+
+        if (!stageInstance) {
+            res.status(404).json({ success: false, error: 'Stage instance not found or failed to update', code: 'STAGE_INSTANCE_UPDATE_FAILED' });
+            return;
+        }
+
+        const response: ApiResponse<SerializedStageInstance> = { success: true, data: stageInstance };
+        res.json(response);
+    } catch (error) {
+        console.error('Error updating stage instance:', error);
+        res.status(500).json({ success: false, error: 'Failed to update stage instance', code: 'STAGE_INSTANCE_UPDATE_ERROR' });
+    }
 });
 
 /**
@@ -68,14 +100,20 @@ router.patch('/:channelId', async (req, res) => {
  */
 router.delete('/:channelId', async (req, res) => {
     const { channelId } = req.params;
-    const success = await stageInstanceService.deleteStageInstance(channelId);
 
-    if (!success) {
-        res.status(404).json({ success: false, error: 'Stage instance not found or failed to delete', code: 'STAGE_INSTANCE_DELETE_FAILED' });
-        return;
+    try {
+        const success = await stageInstanceService.deleteStageInstance(channelId);
+
+        if (!success) {
+            res.status(404).json({ success: false, error: 'Stage instance not found or failed to delete', code: 'STAGE_INSTANCE_DELETE_FAILED' });
+            return;
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting stage instance:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete stage instance', code: 'STAGE_INSTANCE_DELETE_ERROR' });
     }
-
-    res.json({ success: true });
 });
 
 export default router;

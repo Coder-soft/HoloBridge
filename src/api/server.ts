@@ -27,6 +27,7 @@ import stageInstancesRouter from './routes/stage-instances.js';
 import invitesRouter from './routes/invites.js';
 import webhooksRouter from './routes/webhooks.js';
 import emojisRouter from './routes/emojis.js';
+import { pluginManager } from '../plugins/manager.js';
 import type { Application } from 'express';
 import type { Server as HttpServer } from 'http';
 
@@ -94,6 +95,9 @@ export function createApiServer(): ApiServerInstance {
     app.use('/api/invites', invitesRouter);
     app.use('/api/webhooks', webhooksRouter);
 
+    // Mount plugin routes (plugins inherit auth middleware from /api)
+    app.use('/api/plugins', pluginManager.getPluginRouter());
+
     // Error handlers
     app.use(notFoundHandler);
     app.use(errorHandler);
@@ -120,6 +124,7 @@ export function startApiServer(): Promise<void> {
         httpServer.listen(config.api.port, () => {
             console.log(`🌐 API server listening on port ${config.api.port}`);
             console.log(`   REST API: http://localhost:${config.api.port}/api`);
+            console.log(`   Plugin API: http://localhost:${config.api.port}/api/plugins`);
             console.log(`   WebSocket: ws://localhost:${config.api.port}`);
             console.log(`   Health check: http://localhost:${config.api.port}/health`);
             resolve();

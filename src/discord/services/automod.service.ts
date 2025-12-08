@@ -11,8 +11,13 @@ export class AutoModService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return [];
 
-        const rules = await guild.autoModerationRules.fetch();
-        return rules.map(serializeAutoModRule);
+        try {
+            const rules = await guild.autoModerationRules.fetch();
+            return rules.map(serializeAutoModRule);
+        } catch (error) {
+            console.error(`Failed to fetch auto-moderation rules for guild ${guildId}:`, error);
+            return [];
+        }
     }
 
     /**
@@ -37,8 +42,13 @@ export class AutoModService {
         const guild = discordClient.guilds.cache.get(guildId);
         if (!guild) return null;
 
-        const rule = await guild.autoModerationRules.create(data);
-        return serializeAutoModRule(rule);
+        try {
+            const rule = await guild.autoModerationRules.create(data);
+            return serializeAutoModRule(rule);
+        } catch (error) {
+            console.error(`Failed to create auto-moderation rule in guild ${guildId}:`, error);
+            return null;
+        }
     }
 
     /**

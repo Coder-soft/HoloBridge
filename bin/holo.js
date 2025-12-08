@@ -10,6 +10,7 @@
  */
 
 import { spawn } from 'child_process';
+import { randomBytes } from 'crypto';
 import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { constants } from 'fs';
 import { resolve, dirname } from 'path';
@@ -211,9 +212,11 @@ RATE_LIMIT_MAX=100
 
 function generateApiKey() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charsLength = chars.length;
+    const bytes = randomBytes(32); // 32 bytes of cryptographically secure entropy
     let key = 'holo_';
     for (let i = 0; i < 32; i++) {
-        key += chars.charAt(Math.floor(Math.random() * chars.length));
+        key += chars.charAt(bytes[i] % charsLength);
     }
     return key;
 }
@@ -246,24 +249,31 @@ Examples:
 const args = process.argv.slice(2);
 const command = args[0];
 
-switch (command) {
-    case 'start':
-        commandStart(args.slice(1));
-        break;
-    case 'doctor':
-        commandDoctor();
-        break;
-    case 'init':
-        commandInit();
-        break;
-    case 'help':
-    case '--help':
-    case '-h':
-    case undefined:
-        showHelp();
-        break;
-    default:
-        log(`Unknown command: ${command}`, 'red');
-        showHelp();
+(async () => {
+    try {
+        switch (command) {
+            case 'start':
+                await commandStart(args.slice(1));
+                break;
+            case 'doctor':
+                await commandDoctor();
+                break;
+            case 'init':
+                await commandInit();
+                break;
+            case 'help':
+            case '--help':
+            case '-h':
+            case undefined:
+                showHelp();
+                break;
+            default:
+                log(`Unknown command: ${command}`, 'red');
+                showHelp();
+                process.exit(1);
+        }
+    } catch (err) {
+        log(`Error: ${err.message}`, 'red');
         process.exit(1);
-}
+    }
+})();

@@ -24,17 +24,6 @@ function getClientId(req: Request): string {
     return req.ip ?? 'unknown';
 }
 
-/**
- * Clean up expired entries periodically.
- */
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitStore) {
-        if (entry.resetAt < now) {
-            rateLimitStore.delete(key);
-        }
-    }
-}, 60000); // Clean up every minute
 
 /**
  * Global rate limiter middleware.
@@ -90,9 +79,27 @@ export function rateLimiter(): RequestHandler {
  * Create a strict rate limiter for specific routes.
  * @param maxRequests - Max requests allowed
  * @param windowMs - Time window in milliseconds
+ * @param cleanupIntervalMs - Cleanup interval in milliseconds (default: 60000)
  */
-export function strictRateLimiter(maxRequests: number, windowMs: number): RequestHandler {
+export function strictRateLimiter(
+    maxRequests: number,
+    windowMs: number,
+    cleanupIntervalMs: number = 60000
+): RequestHandler {
     const store = new Map<string, RateLimitEntry>();
+
+    // Set up periodic cleanup for this store
+    const cleanupInterval = setInterval(() => {
+        const now = Date.now();
+        for (const [key, entry] of store) {
+            if (entry.resetAt < now) {
+                store.delete(key);
+            }
+        }
+    }, cleanupIntervalMs);
+
+    // Track interval for shutdown cleanup
+    cleanupIntervals.push(cleanupInterval);
 
     return (req: Request, res: Response, next: NextFunction): void => {
         const clientId = getClientId(req);
@@ -125,3 +132,32 @@ export function strictRateLimiter(maxRequests: number, windowMs: number): Reques
         next();
     };
 }
+
+/**
+ * Track all cleanup intervals for proper shutdown
+ */
+const cleanupIntervals: NodeJS.Timeout[] = [];
+
+// Track the global cleanup interval
+const globalCleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore) {
+        if (entry.resetAt < now) {
+            rateLimitStore.delete(key);
+        }
+    }
+}, 60000);
+cleanupIntervals.push(globalCleanupInterval);
+
+/**
+ * Clean up all rate limiter intervals on shutdown.
+ * Call this when the server is shutting down to prevent memory leaks.
+ */
+export function shutdownRateLimiter(): void {
+    for (const interval of cleanupIntervals) {
+        clearInterval(interval);
+    }
+    cleanupIntervals.length = 0;
+    rateLimitStore.clear();
+}
+

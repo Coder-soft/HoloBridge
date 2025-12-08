@@ -1,5 +1,6 @@
 import type { Client } from 'discord.js';
 import type { Server as SocketIOServer } from 'socket.io';
+import type { Application } from 'express';
 import type { Config } from '../config/index.js';
 import type {
     ServerToClientEvents,
@@ -7,6 +8,8 @@ import type {
     InterServerEvents,
     SocketData,
 } from './events.types.js';
+import type { PluginEventBus, EventSubscription } from '../plugins/event-bus.js';
+import type { PluginRouter, PluginLogger } from '../plugins/sdk.js';
 
 /**
  * The context passed to plugins on load.
@@ -19,8 +22,18 @@ export interface PluginContext {
     io: SocketIOServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
     /** Application configuration */
     config: Config;
-    /** Logger utility */
+    /** Express application (for advanced use cases) */
+    app: Application;
+    /** Event bus for inter-plugin communication */
+    eventBus: PluginEventBus;
+    /** Logger utility (legacy) */
     log: (message: string) => void;
+    /** Enhanced logger with levels */
+    logger: PluginLogger;
+    /** Get metadata of a loaded plugin */
+    getPlugin: (name: string) => PluginMetadata | undefined;
+    /** List all loaded plugin names */
+    listPlugins: () => string[];
 }
 
 /**
@@ -45,6 +58,51 @@ export interface HoloPlugin {
     metadata: PluginMetadata;
 
     /**
+     * Register REST API routes for this plugin.
+     * Routes will be mounted at /api/plugins/{plugin-name}/
+     * 
+     * @example
+     * ```typescript
+     * routes: (router, ctx) => {
+     *     router.get('/status', (req, res) => {
+     *         res.json({ status: 'ok' });
+     *     });
+     *     router.post('/action', (req, res) => {
+     *         // Handle POST request
+     *     });
+     * }
+     * ```
+     */
+    routes?: (router: PluginRouter, ctx: PluginContext) => void;
+
+    /**
+     * Set up event subscriptions for inter-plugin communication.
+     * Return an array of subscriptions for automatic cleanup on unload.
+     * 
+     * @example
+     * ```typescript
+     * events: (helpers, ctx) => [
+     *     helpers.onDiscord('messageCreate', (msg) => {
+     *         console.log('New message:', msg.content);
+     *     }),
+     *     helpers.onCustom('other-plugin:action', (data) => {
+     *         // Handle custom event from another plugin
+     *     }),
+     * ]
+     * ```
+     */
+    events?: (
+        helpers: {
+            onDiscord: <T = unknown>(event: string, handler: (data: T) => void | Promise<void>) => EventSubscription;
+            onCustom: <T = Record<string, unknown>>(event: string, handler: (data: T) => void | Promise<void>) => EventSubscription;
+            emit: <T extends Record<string, unknown>>(event: string, data: T) => void;
+            onPluginLoaded: (handler: (data: { name: string; version: string }) => void) => EventSubscription;
+            onPluginUnloaded: (handler: (data: { name: string }) => void) => EventSubscription;
+        },
+        ctx: PluginContext
+    ) => EventSubscription[];
+
+    /**
      * Called when the plugin is loaded.
      * Use this to set up event listeners, initialize state, etc.
      */
@@ -60,6 +118,7 @@ export interface HoloPlugin {
      * Called for every Discord event that HoloBridge broadcasts.
      * @param eventName - The Discord event name (e.g., "messageCreate")
      * @param data - The serialized event data
+     * @deprecated Use the `events` hook with typed subscriptions instead
      */
     onEvent?: (eventName: string, data: unknown) => Promise<void> | void;
 }
