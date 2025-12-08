@@ -34,6 +34,11 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
             exit();
             return;
         }
+
+        if (key.return && step === 'confirm') {
+            handleCreate();
+            return;
+        }
     });
 
     async function handleCreate(): Promise<void> {
@@ -77,10 +82,14 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                 {/* Step 1: Name */}
                 {step === 'name' && (
                     <Box flexDirection="column">
-                        <Text bold marginBottom={1}>Step 1: Instance Name</Text>
-                        <Text dimColor marginBottom={1}>
-                            Choose a name for your HoloBridge instance
-                        </Text>
+                        <Box marginBottom={1}>
+                            <Text bold>Step 1: Instance Name</Text>
+                        </Box>
+                        <Box marginBottom={1}>
+                            <Text dimColor>
+                                Choose a name for your HoloBridge instance
+                            </Text>
+                        </Box>
                         <Box>
                             <Text>Name: </Text>
                             <TextInput
@@ -96,10 +105,14 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                 {/* Step 2: Discord Token */}
                 {step === 'token' && (
                     <Box flexDirection="column">
-                        <Text bold marginBottom={1}>Step 2: Discord Bot Token</Text>
-                        <Text dimColor marginBottom={1}>
-                            Enter your Discord bot token (from Discord Developer Portal)
-                        </Text>
+                        <Box marginBottom={1}>
+                            <Text bold>Step 2: Discord Bot Token</Text>
+                        </Box>
+                        <Box marginBottom={1}>
+                            <Text dimColor>
+                                Enter your Discord bot token (from Discord Developer Portal)
+                            </Text>
+                        </Box>
                         <Box>
                             <Text>Token: </Text>
                             <TextInput
@@ -110,16 +123,20 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                                 mask="*"
                             />
                         </Box>
-                        <Text dimColor marginTop={1}>
-                            Token must be at least 50 characters
-                        </Text>
+                        <Box marginTop={1}>
+                            <Text dimColor>
+                                Token must be at least 50 characters
+                            </Text>
+                        </Box>
                     </Box>
                 )}
 
                 {/* Step 3: Confirm */}
                 {step === 'confirm' && (
                     <Box flexDirection="column">
-                        <Text bold marginBottom={1}>Step 3: Confirm</Text>
+                        <Box marginBottom={1}>
+                            <Text bold>Step 3: Confirm</Text>
+                        </Box>
                         <Box flexDirection="column" marginBottom={1}>
                             <Text>Name: <Text color="cyan">{name}</Text></Text>
                             <Text>Token: <Text dimColor>{'*'.repeat(20)}...{token.slice(-8)}</Text></Text>
@@ -128,7 +145,6 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                             <Text
                                 backgroundColor="green"
                                 color="white"
-                                onClick={handleCreate}
                             >
                                 {' '}Press Enter to Create{' '}
                             </Text>
@@ -145,7 +161,9 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                         <Text>
                             <Spinner type="dots" /> Creating instance...
                         </Text>
-                        <Text dimColor marginTop={1}>This may take a moment</Text>
+                        <Box marginTop={1}>
+                            <Text dimColor>This may take a moment</Text>
+                        </Box>
                     </Box>
                 )}
 
@@ -153,7 +171,9 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                 {step === 'done' && (
                     <Box flexDirection="column" alignItems="center">
                         <Text color="green">✅ Instance created successfully!</Text>
-                        <Text dimColor marginTop={1}>Returning to dashboard...</Text>
+                        <Box marginTop={1}>
+                            <Text dimColor>Returning to dashboard...</Text>
+                        </Box>
                     </Box>
                 )}
 
@@ -162,7 +182,9 @@ export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.Re
                     <Box flexDirection="column">
                         <Text color="red">❌ Failed to create instance</Text>
                         {error && <Text dimColor>{error}</Text>}
-                        <Text dimColor marginTop={1}>Press Escape to go back</Text>
+                        <Box marginTop={1}>
+                            <Text dimColor>Press Escape to go back</Text>
+                        </Box>
                     </Box>
                 )}
             </Box>

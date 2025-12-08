@@ -6,7 +6,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { verifySecurityCode, getUserById } from './supabase.js';
-import { HEADER_SECURITY_CODE } from '../../shared/src/constants.js';
+import { HEADER_SECURITY_CODE } from '../../../shared/src/constants.js';
 
 // Extend Express Request with auth context
 declare global {

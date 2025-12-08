@@ -11,7 +11,7 @@ import {
     CONTAINER_NAME_PREFIX,
     DOCKER_NETWORK_NAME,
     DEFAULT_INSTANCE_PORT_RANGE
-} from '../../shared/src/constants.js';
+} from '../../../shared/src/constants.js';
 
 // Initialize Docker client
 const docker = new Docker({ socketPath: config.docker.socketPath });
@@ -234,11 +234,11 @@ export async function getContainerLogs(
         tail: options.tail ?? 100,
         follow: options.follow ?? false,
         timestamps: true,
-    });
+    } as any) as any;
 
     // Docker logs come with a multiplexed stream, convert to readable
-    if (logStream instanceof Readable) {
-        return logStream;
+    if (logStream && (logStream as any).on) {
+        return logStream as Readable;
     }
 
     // If it's a string (non-follow mode), wrap in readable

@@ -5,8 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
 import Spinner from 'ink-spinner';
-import { startOAuthFlow } from '../auth/discord.js';
-import type { StoredSession } from '../auth/session.js';
+import { startOAuthFlow } from '../../auth/discord.js';
+import type { StoredSession } from '../../auth/session.js';
+import type { Key } from 'ink';
 
 interface LoginScreenProps {
     onLogin: (session: StoredSession) => void;
@@ -19,7 +20,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
     const [state, setState] = useState<LoginState>('idle');
     const [error, setError] = useState<string | null>(null);
 
-    useInput((input, key) => {
+    useInput((input: string, key: Key) => {
         if (input === 'q' || key.escape) {
             exit();
             return;

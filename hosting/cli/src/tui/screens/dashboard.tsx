@@ -175,24 +175,23 @@ export function DashboardScreen({ session, onNavigate, onLogout }: DashboardScre
                                 {instances.map((instance, index) => (
                                     <Box
                                         key={instance.id}
-                                        backgroundColor={index === selectedIndex ? 'blue' : undefined}
                                     >
                                         <Box width={20}>
-                                            <Text>{instance.name}</Text>
+                                            <Text backgroundColor={index === selectedIndex ? 'blue' : undefined} color={index === selectedIndex ? 'white' : undefined}>{instance.name}</Text>
                                         </Box>
                                         <Box width={12}>
-                                            <Text color={instance.status === 'running' ? 'green' : 'red'}>
+                                            <Text backgroundColor={index === selectedIndex ? 'blue' : undefined} color={instance.status === 'running' ? 'green' : (instance.status === 'stopped' ? 'red' : 'white')}>
                                                 {instance.status === 'running' ? '🟢' : '🔴'} {instance.status}
                                             </Text>
                                         </Box>
                                         <Box width={8}>
-                                            <Text>{instance.port ?? '-'}</Text>
+                                            <Text backgroundColor={index === selectedIndex ? 'blue' : undefined} color={index === selectedIndex ? 'white' : undefined}>{instance.port ?? '-'}</Text>
                                         </Box>
                                         <Box width={10}>
-                                            <Text>{instance.stats?.cpu.toFixed(1) ?? '-'}%</Text>
+                                            <Text backgroundColor={index === selectedIndex ? 'blue' : undefined} color={index === selectedIndex ? 'white' : undefined}>{instance.stats?.cpu.toFixed(1) ?? '-'}%</Text>
                                         </Box>
                                         <Box width={10}>
-                                            <Text>{instance.stats?.memory.toFixed(0) ?? '-'}MB</Text>
+                                            <Text backgroundColor={index === selectedIndex ? 'blue' : undefined} color={index === selectedIndex ? 'white' : undefined}>{instance.stats?.memory.toFixed(0) ?? '-'}MB</Text>
                                         </Box>
                                     </Box>
                                 ))}

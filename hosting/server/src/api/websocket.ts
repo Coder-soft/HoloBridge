@@ -8,7 +8,7 @@ import type { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { verifySecurityCode } from '../auth/supabase.js';
 import * as docker from '../orchestrator/docker.js';
-import type { ServerEvent, ClientEvent } from '../../shared/src/types.js';
+import type { ServerEvent, ClientEvent } from '../../../shared/src/types.js';
 
 let io: Server | null = null;
 

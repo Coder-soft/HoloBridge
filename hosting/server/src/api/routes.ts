@@ -9,18 +9,23 @@ import { z } from 'zod';
 import { authMiddleware, requireInstanceOwnership } from '../auth/middleware.js';
 import * as instanceManager from '../orchestrator/instance.js';
 import * as docker from '../orchestrator/docker.js';
-import { supabase, logAudit } from '../auth/supabase.js';
+import { supabase, logAudit, type Database } from '../auth/supabase.js';
 import {
     API_KEY_PREFIX,
     API_KEY_LENGTH,
     ALL_SCOPES
-} from '../../shared/src/constants.js';
+} from '../../../shared/src/constants.js';
 import { randomBytes, createHash } from 'crypto';
 
 export const router = Router();
 
 // Apply auth middleware to all routes
 router.use(authMiddleware);
+
+// Health check handler
+export const healthHandler = (_req: Request, res: Response) => {
+    res.json({ status: 'ok', version: '1.0.0' });
+};
 
 // ============ Instance Routes ============
 
@@ -239,330 +244,259 @@ router.patch('/instances/:id/config', requireInstanceOwnership, async (req: Requ
 
 // ============ API Key Routes ============
 
-// List API keys for an instance
+// List API keys
 router.get('/instances/:id/keys', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const { data, error } = await supabase
-            .from('instance_api_keys')
-            .select('id, instance_id, name, key_hash, scopes, created_at, last_used_at')
-            .eq('instance_id', req.params['id'])
-            .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+        .from('instance_api_keys')
+        .select('id, name, created_at, last_used_at, scopes')
+        .eq('instance_id', req.params['id']!)
+        .order('created_at', { ascending: false });
 
-        if (error) {
-            throw error;
-        }
+    // Explicit cast for Supabase result
+    const keys = (data as unknown) as Database['public']['Tables']['instance_api_keys']['Row'][] | null;
 
-        // Don't expose full key hash, just a prefix
-        const keys = data.map(key => ({
-            id: key.id,
-            instanceId: key.instance_id,
-            name: key.name,
-            keyPrefix: key.key_hash.slice(0, 8),
-            scopes: key.scopes,
-            createdAt: key.created_at,
-            lastUsedAt: key.last_used_at,
-        }));
-
-        res.json({
-            success: true,
-            data: keys,
-        });
-    } catch (error) {
-        console.error('Error listing API keys:', error);
+    if (error) {
         res.status(500).json({
             success: false,
-            error: { code: 'LIST_FAILED', message: 'Failed to list API keys' },
+            error: { code: 'LIST_KEYS_FAILED', message: 'Failed to list API keys' },
         });
+        return;
     }
+
+    res.json({
+        success: true,
+        data: keys,
+    });
 });
 
-// Create API key schema
-const createApiKeySchema = z.object({
+// Create API key
+const createKeySchema = z.object({
     name: z.string().min(1).max(50),
-    scopes: z.array(z.enum(ALL_SCOPES as unknown as [string, ...string[]])),
+    scopes: z.array(z.string()).optional(),
 });
 
-// Create a new API key
 router.post('/instances/:id/keys', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const parsed = createApiKeySchema.safeParse(req.body);
-        if (!parsed.success) {
-            res.status(400).json({
-                success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: parsed.error.issues.map(i => i.message).join(', ')
-                },
-            });
-            return;
-        }
-
-        // Generate key
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const bytes = randomBytes(API_KEY_LENGTH);
-        let key = API_KEY_PREFIX;
-        for (let i = 0; i < API_KEY_LENGTH; i++) {
-            key += chars.charAt(bytes[i] % chars.length);
-        }
-
-        // Hash for storage
-        const keyHash = createHash('sha256').update(key).digest('hex');
-
-        const { data, error } = await supabase
-            .from('instance_api_keys')
-            .insert({
-                instance_id: req.params['id']!,
-                name: parsed.data.name,
-                key_hash: keyHash,
-                scopes: parsed.data.scopes,
-            })
-            .select()
-            .single();
-
-        if (error || !data) {
-            throw error;
-        }
-
-        await logAudit(req.auth!.userId, req.params['id']!, 'apikey.create', { name: parsed.data.name });
-
-        // Return the full key ONLY on creation
-        res.status(201).json({
-            success: true,
-            data: {
-                id: data.id,
-                name: data.name,
-                key: key, // Full key, only shown once
-                scopes: data.scopes,
+    const parsed = createKeySchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({
+            success: false,
+            error: {
+                code: 'VALIDATION_ERROR',
+                message: parsed.error.issues.map(i => i.message).join(', ')
             },
         });
-    } catch (error) {
-        console.error('Error creating API key:', error);
+        return;
+    }
+
+    // Generate key
+    const rawKey = `${API_KEY_PREFIX}${randomBytes(API_KEY_LENGTH).toString('hex')}`;
+    const keyHash = createHash('sha256').update(rawKey).digest('hex');
+
+    const { data, error } = await supabase
+        .from('instance_api_keys')
+        .insert({
+            instance_id: req.params['id']!,
+            name: parsed.data.name,
+            key_hash: keyHash,
+            scopes: parsed.data.scopes ?? ALL_SCOPES,
+        } as any)
+        .select()
+        .single();
+
+    // Explicit cast for Supabase result
+    const row = data as Database['public']['Tables']['instance_api_keys']['Row'] | null;
+
+    if (error || !row) {
         res.status(500).json({
             success: false,
-            error: { code: 'CREATE_FAILED', message: 'Failed to create API key' },
+            error: { code: 'CREATE_KEY_FAILED', message: 'Failed to create API key' },
         });
+        return;
     }
+
+    await logAudit(req.auth!.userId, req.params['id']!, 'apikey.create', { name: parsed.data.name });
+
+    // Return the raw key only once
+    res.status(201).json({
+        success: true,
+        data: {
+            ...row,
+            key: rawKey,
+        },
+    });
 });
 
 // Delete API key
 router.delete('/instances/:id/keys/:keyId', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const { error } = await supabase
-            .from('instance_api_keys')
-            .delete()
-            .eq('id', req.params['keyId'])
-            .eq('instance_id', req.params['id']);
+    const { error } = await supabase
+        .from('instance_api_keys')
+        .delete()
+        .eq('id', req.params['keyId']!)
+        .eq('instance_id', req.params['id']!);
 
-        if (error) {
-            throw error;
-        }
-
-        await logAudit(req.auth!.userId, req.params['id']!, 'apikey.delete', { keyId: req.params['keyId'] });
-
-        res.json({
-            success: true,
-            data: { message: 'API key deleted' },
-        });
-    } catch (error) {
-        console.error('Error deleting API key:', error);
+    if (error) {
         res.status(500).json({
             success: false,
-            error: { code: 'DELETE_FAILED', message: 'Failed to delete API key' },
+            error: { code: 'DELETE_KEY_FAILED', message: 'Failed to delete API key' },
         });
+        return;
     }
+
+    await logAudit(req.auth!.userId, req.params['id']!, 'apikey.delete', { keyId: req.params['keyId'] });
+
+    res.json({
+        success: true,
+        data: { message: 'API key deleted' },
+    });
 });
 
 // ============ Plugin Routes ============
 
-// List plugins for an instance
+// List plugins
 router.get('/instances/:id/plugins', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const { data, error } = await supabase
-            .from('instance_plugins')
-            .select()
-            .eq('instance_id', req.params['id'])
-            .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+        .from('instance_plugins')
+        .select('*')
+        .eq('instance_id', req.params['id']!)
+        .order('name');
 
-        if (error) {
-            throw error;
-        }
+    // Explicit cast for Supabase result
+    const plugins = (data as unknown) as Database['public']['Tables']['instance_plugins']['Row'][] | null;
 
-        res.json({
-            success: true,
-            data: data.map(p => ({
-                id: p.id,
-                instanceId: p.instance_id,
-                name: p.name,
-                version: p.version,
-                enabled: p.enabled,
-                config: p.config,
-                createdAt: p.created_at,
-            })),
-        });
-    } catch (error) {
-        console.error('Error listing plugins:', error);
+    if (error) {
         res.status(500).json({
             success: false,
-            error: { code: 'LIST_FAILED', message: 'Failed to list plugins' },
+            error: { code: 'LIST_PLUGINS_FAILED', message: 'Failed to list plugins' },
         });
+        return;
     }
+
+    res.json({
+        success: true,
+        data: plugins,
+    });
 });
 
-// Create plugin schema
-const createPluginSchema = z.object({
-    name: z.string().min(1).max(50),
-    content: z.string().min(1), // Base64 encoded
+// Add plugin (Metadata only for now, would involve file upload in real implementation)
+const addPluginSchema = z.object({
+    name: z.string().min(1),
+    version: z.string().optional(),
     config: z.record(z.unknown()).optional(),
 });
 
-// Add a plugin
 router.post('/instances/:id/plugins', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const parsed = createPluginSchema.safeParse(req.body);
-        if (!parsed.success) {
-            res.status(400).json({
+    const parsed = addPluginSchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({
+            success: false,
+            error: {
+                code: 'VALIDATION_ERROR',
+                message: parsed.error.issues.map(i => i.message).join(', ')
+            },
+        });
+        return;
+    }
+
+    const { data, error } = await supabase
+        .from('instance_plugins')
+        .insert({
+            instance_id: req.params['id']!,
+            name: parsed.data.name,
+            version: parsed.data.version ?? null,
+            config: parsed.data.config ?? {},
+            enabled: true,
+        })
+        .select()
+        .single();
+
+    // Explicit cast for Supabase result
+    const row = data as Database['public']['Tables']['instance_plugins']['Row'] | null;
+
+    if (error || !row) {
+        if (error?.code === '23505') { // Unique violation
+            res.status(409).json({
                 success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: parsed.error.issues.map(i => i.message).join(', ')
-                },
+                error: { code: 'PLUGIN_EXISTS', message: 'Plugin already exists' },
             });
             return;
         }
-
-        // TODO: Save plugin file to container volume
-        // For now, just save metadata
-
-        const { data, error } = await supabase
-            .from('instance_plugins')
-            .insert({
-                instance_id: req.params['id']!,
-                name: parsed.data.name,
-                version: '1.0.0',
-                enabled: true,
-                config: parsed.data.config ?? {},
-            })
-            .select()
-            .single();
-
-        if (error || !data) {
-            throw error;
-        }
-
-        await logAudit(req.auth!.userId, req.params['id']!, 'plugin.install', { name: parsed.data.name });
-
-        res.status(201).json({
-            success: true,
-            data: {
-                id: data.id,
-                instanceId: data.instance_id,
-                name: data.name,
-                version: data.version,
-                enabled: data.enabled,
-                config: data.config,
-                createdAt: data.created_at,
-            },
-        });
-    } catch (error) {
-        console.error('Error adding plugin:', error);
         res.status(500).json({
             success: false,
-            error: { code: 'CREATE_FAILED', message: 'Failed to add plugin' },
+            error: { code: 'ADD_PLUGIN_FAILED', message: 'Failed to add plugin' },
         });
+        return;
     }
+
+    await logAudit(req.auth!.userId, req.params['id']!, 'plugin.add', { name: parsed.data.name });
+
+    res.status(201).json({
+        success: true,
+        data: row,
+    });
 });
 
 // Toggle plugin
 router.patch('/instances/:id/plugins/:pluginId', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const { enabled } = req.body;
+    const { enabled } = req.body;
 
-        if (typeof enabled !== 'boolean') {
-            res.status(400).json({
-                success: false,
-                error: { code: 'VALIDATION_ERROR', message: 'enabled must be a boolean' },
-            });
-            return;
-        }
-
-        const { data, error } = await supabase
-            .from('instance_plugins')
-            .update({ enabled })
-            .eq('id', req.params['pluginId'])
-            .eq('instance_id', req.params['id'])
-            .select()
-            .single();
-
-        if (error || !data) {
-            throw error;
-        }
-
-        await logAudit(req.auth!.userId, req.params['id']!, 'plugin.toggle', {
-            pluginId: req.params['pluginId'],
-            enabled
+    if (typeof enabled !== 'boolean') {
+        res.status(400).json({
+            success: false,
+            error: { code: 'INVALID_INPUT', message: 'enabled must be a boolean' },
         });
+        return;
+    }
 
-        res.json({
-            success: true,
-            data: {
-                id: data.id,
-                instanceId: data.instance_id,
-                name: data.name,
-                version: data.version,
-                enabled: data.enabled,
-                config: data.config,
-                createdAt: data.created_at,
-            },
-        });
-    } catch (error) {
-        console.error('Error toggling plugin:', error);
+    const { data, error } = await supabase
+        .from('instance_plugins')
+        .update({ enabled })
+        .eq('id', req.params['pluginId']!)
+        .eq('instance_id', req.params['id']!)
+        .select()
+        .single();
+
+    // Explicit cast for Supabase result
+    const row = data as Database['public']['Tables']['instance_plugins']['Row'] | null;
+
+    if (error || !row) {
         res.status(500).json({
             success: false,
-            error: { code: 'UPDATE_FAILED', message: 'Failed to toggle plugin' },
+            error: { code: 'UPDATE_PLUGIN_FAILED', message: 'Failed to update plugin' },
         });
+        return;
     }
+
+    await logAudit(req.auth!.userId, req.params['id']!, 'plugin.toggle', {
+        pluginId: req.params['pluginId'],
+        enabled
+    });
+
+    res.json({
+        success: true,
+        data: row,
+    });
 });
 
 // Delete plugin
 router.delete('/instances/:id/plugins/:pluginId', requireInstanceOwnership, async (req: Request, res: Response) => {
-    try {
-        const { error } = await supabase
-            .from('instance_plugins')
-            .delete()
-            .eq('id', req.params['pluginId'])
-            .eq('instance_id', req.params['id']);
+    const { error } = await supabase
+        .from('instance_plugins')
+        .delete()
+        .eq('id', req.params['pluginId']!)
+        .eq('instance_id', req.params['id']!);
 
-        if (error) {
-            throw error;
-        }
-
-        await logAudit(req.auth!.userId, req.params['id']!, 'plugin.uninstall', { pluginId: req.params['pluginId'] });
-
-        res.json({
-            success: true,
-            data: { message: 'Plugin deleted' },
-        });
-    } catch (error) {
-        console.error('Error deleting plugin:', error);
+    if (error) {
         res.status(500).json({
             success: false,
-            error: { code: 'DELETE_FAILED', message: 'Failed to delete plugin' },
+            error: { code: 'DELETE_PLUGIN_FAILED', message: 'Failed to delete plugin' },
         });
+        return;
     }
-});
 
-// ============ Health & Status Routes ============
-
-// Health check (no auth required - mounted separately)
-export async function healthHandler(_req: Request, res: Response): Promise<void> {
-    const dockerHealthy = await docker.checkDockerHealth();
+    await logAudit(req.auth!.userId, req.params['id']!, 'plugin.delete', { pluginId: req.params['pluginId'] });
 
     res.json({
         success: true,
-        data: {
-            status: dockerHealthy ? 'healthy' : 'degraded',
-            docker: dockerHealthy,
-            timestamp: new Date().toISOString(),
-        },
+        data: { message: 'Plugin deleted' },
     });
-}
+});

@@ -26,7 +26,8 @@ export interface Database {
                     updated_at: string;
                 };
                 Insert: Omit<Database['public']['Tables']['instances']['Row'], 'id' | 'created_at' | 'updated_at'>;
-                Update: Partial<Database['public']['Tables']['instances']['Insert']>;
+                Update: Partial<Database['public']['Tables']['instances']['Row']>;
+                Relationships: [];
             };
             instance_plugins: {
                 Row: {
@@ -39,7 +40,8 @@ export interface Database {
                     created_at: string;
                 };
                 Insert: Omit<Database['public']['Tables']['instance_plugins']['Row'], 'id' | 'created_at'>;
-                Update: Partial<Database['public']['Tables']['instance_plugins']['Insert']>;
+                Update: Partial<Database['public']['Tables']['instance_plugins']['Row']>;
+                Relationships: [];
             };
             instance_api_keys: {
                 Row: {
@@ -52,7 +54,8 @@ export interface Database {
                     last_used_at: string | null;
                 };
                 Insert: Omit<Database['public']['Tables']['instance_api_keys']['Row'], 'id' | 'created_at'>;
-                Update: Partial<Database['public']['Tables']['instance_api_keys']['Insert']>;
+                Update: Partial<Database['public']['Tables']['instance_api_keys']['Row']>;
+                Relationships: [];
             };
             audit_log: {
                 Row: {
@@ -65,7 +68,17 @@ export interface Database {
                 };
                 Insert: Omit<Database['public']['Tables']['audit_log']['Row'], 'id' | 'created_at'>;
                 Update: never;
+                Relationships: [];
             };
+        };
+        Views: {
+            [_ in never]: never
+        };
+        Functions: {
+            [_ in never]: never
+        };
+        Enums: {
+            [_ in never]: never
         };
     };
 }

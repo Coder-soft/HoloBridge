@@ -5,15 +5,15 @@
  */
 
 import { randomBytes, createCipheriv, createDecipheriv, createHash } from 'crypto';
-import { supabase, logAudit } from '../auth/supabase.js';
+import { supabase, logAudit, type Database } from '../auth/supabase.js';
 import * as docker from './docker.js';
 import {
     SECURITY_CODE_LENGTH,
     API_KEY_LENGTH,
     API_KEY_PREFIX,
     DEFAULT_INSTANCE_CONFIG
-} from '../../shared/src/constants.js';
-import type { Instance, InstanceConfig, CreateInstanceRequest, InstanceStatus } from '../../shared/src/types.js';
+} from '../../../shared/src/constants.js';
+import type { Instance, InstanceConfig, CreateInstanceRequest, InstanceStatus } from '../../../shared/src/types.js';
 import { config } from '../config.js';
 
 // Encryption helpers
@@ -120,9 +120,12 @@ export async function createInstance(
             config: instanceConfig as Record<string, unknown>,
         })
         .select()
+        .select()
         .single();
 
-    if (error || !data) {
+    const row = data as Database['public']['Tables']['instances']['Row'] | null;
+
+    if (error || !row) {
         // Cleanup container if database insert fails
         try {
             await docker.removeContainer(containerResult.containerId);
@@ -133,19 +136,19 @@ export async function createInstance(
     }
 
     // Log the action
-    await logAudit(userId, data.id, 'instance.create', { name: request.name });
+    await logAudit(userId, row.id, 'instance.create', { name: request.name });
 
     return {
-        id: data.id,
-        userId: data.user_id,
-        securityCode: data.security_code,
-        name: data.name,
-        containerId: data.container_id,
-        status: data.status as InstanceStatus,
-        port: data.port,
-        config: data.config as InstanceConfig,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
+        id: row.id,
+        userId: row.user_id,
+        securityCode: row.security_code,
+        name: row.name,
+        containerId: row.container_id,
+        status: row.status as InstanceStatus,
+        port: row.port,
+        config: row.config as InstanceConfig,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
     };
 }
 
@@ -159,21 +162,23 @@ export async function getInstance(instanceId: string): Promise<Instance | null> 
         .eq('id', instanceId)
         .single();
 
-    if (error || !data) {
+    const row = data as Database['public']['Tables']['instances']['Row'] | null;
+
+    if (error || !row) {
         return null;
     }
 
     return {
-        id: data.id,
-        userId: data.user_id,
-        securityCode: data.security_code,
-        name: data.name,
-        containerId: data.container_id,
-        status: data.status as InstanceStatus,
-        port: data.port,
-        config: data.config as InstanceConfig,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
+        id: row.id,
+        userId: row.user_id,
+        securityCode: row.security_code,
+        name: row.name,
+        containerId: row.container_id,
+        status: row.status as InstanceStatus,
+        port: row.port,
+        config: row.config as InstanceConfig,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
     };
 }
 
@@ -191,7 +196,7 @@ export async function listInstances(userId: string): Promise<Instance[]> {
         return [];
     }
 
-    return data.map((row) => ({
+    return data.map((row: Database['public']['Tables']['instances']['Row']) => ({
         id: row.id,
         userId: row.user_id,
         securityCode: row.security_code,
@@ -350,25 +355,28 @@ export async function updateInstanceConfig(
         .update(updateData)
         .eq('id', instanceId)
         .select()
+        .select()
         .single();
 
-    if (error || !data) {
+    const row = data as Database['public']['Tables']['instances']['Row'] | null;
+
+    if (error || !row) {
         throw new Error(`Failed to update instance: ${error?.message}`);
     }
 
     await logAudit(userId, instanceId, 'instance.config.update', updates);
 
     return {
-        id: data.id,
-        userId: data.user_id,
-        securityCode: data.security_code,
-        name: data.name,
-        containerId: data.container_id,
-        status: data.status as InstanceStatus,
-        port: data.port,
-        config: data.config as InstanceConfig,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
+        id: row.id,
+        userId: row.user_id,
+        securityCode: row.security_code,
+        name: row.name,
+        containerId: row.container_id,
+        status: row.status as InstanceStatus,
+        port: row.port,
+        config: row.config as InstanceConfig,
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
     };
 }
 
