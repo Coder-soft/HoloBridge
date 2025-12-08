@@ -622,8 +622,21 @@ export function registerDiscordEvents(): void {
     });
 
     discordClient.on('guildScheduledEventDelete', (event) => {
-        // event may be partial, but we still want to broadcast the deletion
-        // Type assertion needed as Discord.js provides partial type
+        // For partial events, only broadcast minimal deletion info
+        // Full serialization would fail as many properties are undefined
+        if (event.partial) {
+            broadcastEvent({
+                event: 'guildScheduledEventDelete',
+                guildId: event.guildId,
+                data: {
+                    id: event.id,
+                    guildId: event.guildId,
+                    partial: true,
+                },
+            });
+            return;
+        }
+
         broadcastEvent({
             event: 'guildScheduledEventDelete',
             guildId: event.guildId,
