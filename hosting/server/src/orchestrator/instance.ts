@@ -120,7 +120,7 @@ export async function createInstance(
             config: instanceConfig as Record<string, unknown>,
         })
         .select()
-        .select()
+        .single();
         .single();
 
     const row = data as Database['public']['Tables']['instances']['Row'] | null;
