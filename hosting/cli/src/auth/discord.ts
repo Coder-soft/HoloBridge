@@ -20,7 +20,9 @@ import { saveSession, type StoredSession } from './session.js';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * Generate PKCE code verifier and challenge
+ * Create a PKCE code verifier and its corresponding SHA-256 code challenge.
+ *
+ * @returns An object with `verifier` — a 32-byte random string encoded in base64url, and `challenge` — the SHA-256 hash of the verifier encoded in base64url
  */
 function generatePKCE(): { verifier: string; challenge: string } {
     const verifier = randomBytes(32).toString('base64url');
@@ -29,7 +31,11 @@ function generatePKCE(): { verifier: string; challenge: string } {
 }
 
 /**
- * Start OAuth flow and return session on success
+ * Initiates a Discord OAuth flow via Supabase, handles the local callback, saves the authenticated session, and returns the stored session.
+ *
+ * Rejects the promise if authentication fails, the code exchange fails, or the flow times out.
+ *
+ * @returns The persisted StoredSession containing `securityCode`, `userId`, `username`, `avatar`, `discordId`, and `serverUrl`.
  */
 export async function startOAuthFlow(): Promise<StoredSession> {
     return new Promise((resolve, reject) => {
@@ -178,7 +184,7 @@ export async function startOAuthFlow(): Promise<StoredSession> {
 }
 
 /**
- * Sign out and clear local session
+ * Signs out the current user from Supabase.
  */
 export async function signOut(): Promise<void> {
     await supabase.auth.signOut();

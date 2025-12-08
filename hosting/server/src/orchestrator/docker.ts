@@ -64,7 +64,12 @@ async function ensureNetwork(): Promise<void> {
 }
 
 /**
- * Find an available port for a new container
+ * Selects an unused host port from the configured instance port range.
+ *
+ * Scans current containers that match the instance name prefix to refresh the internal allocation set, then returns the first port within DEFAULT_INSTANCE_PORT_RANGE that is not already allocated and marks it allocated.
+ *
+ * @returns A host port number reserved for a new container
+ * @throws Error if no available ports exist in the configured range
  */
 async function findAvailablePort(): Promise<number> {
     // Refresh allocated ports from running containers
@@ -95,7 +100,12 @@ async function findAvailablePort(): Promise<number> {
 }
 
 /**
- * Create and start a new container for a HoloBridge instance
+ * Create a new Docker container configured for a HoloBridge instance.
+ *
+ * Creates a container using the configured image with environment variables (including `DISCORD_TOKEN` and `API_KEY`), exposes container port 3000 mapped to a host port, applies labels, resource limits, and a healthcheck.
+ *
+ * @param options - Configuration for the container (instanceId, name, discordToken, apiKey, optional `port` and `env`).
+ * @returns The created container's ID and the host port mapped to container port 3000.
  */
 export async function createContainer(options: ContainerCreateOptions): Promise<{ containerId: string; port: number }> {
     await ensureNetwork();
@@ -168,7 +178,9 @@ export async function stopContainer(containerId: string): Promise<void> {
 }
 
 /**
- * Restart a container
+ * Restart the Docker container identified by `containerId`.
+ *
+ * @param containerId - The Docker container ID to restart
  */
 export async function restartContainer(containerId: string): Promise<void> {
     const container = docker.getContainer(containerId);
@@ -176,7 +188,12 @@ export async function restartContainer(containerId: string): Promise<void> {
 }
 
 /**
- * Remove a container (must be stopped first)
+ * Remove a Docker container and forcefully delete it.
+ *
+ * Attempts to stop the container with a 5-second timeout (errors while stopping are ignored),
+ * then removes the container using a forced removal.
+ *
+ * @param containerId - The Docker container ID to remove
  */
 export async function removeContainer(containerId: string): Promise<void> {
     const container = docker.getContainer(containerId);
@@ -192,7 +209,9 @@ export async function removeContainer(containerId: string): Promise<void> {
 }
 
 /**
- * Get container status
+ * Retrieve the current status and metadata for a container.
+ *
+ * @returns A `ContainerStatus` object containing `id`, `name`, `state`, optional `health`, `port`, and optional `startedAt` when available; `null` if the container cannot be inspected.
  */
 export async function getContainerStatus(containerId: string): Promise<ContainerStatus | null> {
     try {
@@ -220,7 +239,17 @@ export async function getContainerStatus(containerId: string): Promise<Container
 }
 
 /**
- * Get container logs as a stream
+ * Return a readable stream of a container's logs.
+ *
+ * The stream contains both stdout and stderr with timestamps. When `options.follow`
+ * is `true` the stream follows live logs; when `false` the stream contains the
+ * last `options.tail` lines and then ends.
+ *
+ * @param containerId - Docker container ID
+ * @param options - Log retrieval options
+ * @param options.tail - Number of lines to include when not following (default: 100)
+ * @param options.follow - Whether to follow logs in real time (default: false)
+ * @returns A Readable stream that yields the requested log output
  */
 export async function getContainerLogs(
     containerId: string,
@@ -253,7 +282,10 @@ export async function getContainerLogs(
 }
 
 /**
- * Get container stats (CPU, memory)
+ * Retrieve CPU and memory usage for a Docker container.
+ *
+ * @param containerId - The Docker container ID or name to query.
+ * @returns An object with `cpu` (CPU usage percentage, rounded to two decimals) and `memory` (memory usage in megabytes, rounded to two decimals), or `null` if statistics cannot be retrieved.
  */
 export async function getContainerStats(containerId: string): Promise<{ cpu: number; memory: number } | null> {
     try {
@@ -279,7 +311,9 @@ export async function getContainerStats(containerId: string): Promise<{ cpu: num
 }
 
 /**
- * List all HoloBridge containers
+ * Retrieve a summary list of HoloBridge-managed containers.
+ *
+ * @returns An array of `ContainerStatus` objects for containers matching the HoloBridge name prefix; each entry includes id, name, state, and the host port mapped to container port 3000 (or `null` if not mapped).
  */
 export async function listContainers(): Promise<ContainerStatus[]> {
     const containers = await docker.listContainers({
@@ -296,7 +330,9 @@ export async function listContainers(): Promise<ContainerStatus[]> {
 }
 
 /**
- * Check if Docker is available
+ * Verifies connectivity to the Docker daemon.
+ *
+ * @returns `true` if the Docker daemon responds to a ping, `false` otherwise.
  */
 export async function checkDockerHealth(): Promise<boolean> {
     try {

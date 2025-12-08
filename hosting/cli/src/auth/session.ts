@@ -32,7 +32,13 @@ export interface StoredSession {
 }
 
 /**
- * Save session securely
+ * Persist an authentication session to the system keychain and local config.
+ *
+ * Stores the session's `securityCode` in the OS keychain and saves non-sensitive
+ * metadata (`userId`, `username`, `avatar`, `discordId`, `serverUrl`) in the
+ * local configuration store.
+ *
+ * @param session - The session data to persist; `avatar` may be `null`
  */
 export async function saveSession(session: StoredSession): Promise<void> {
     // Store security code in system keychain
@@ -47,7 +53,11 @@ export async function saveSession(session: StoredSession): Promise<void> {
 }
 
 /**
- * Load session from storage
+ * Reconstructs the stored authentication session from secure and non-sensitive storage.
+ *
+ * Returns the stored session containing the security code and user metadata, or `null` if a complete session is not available or an error occurs.
+ *
+ * @returns `StoredSession` containing `securityCode`, `userId`, `username`, `avatar` (string or `null`), `discordId`, and `serverUrl`; `null` if no complete session is available or an error occurs.
  */
 export async function loadSession(): Promise<StoredSession | null> {
     try {
@@ -80,7 +90,9 @@ export async function loadSession(): Promise<StoredSession | null> {
 }
 
 /**
- * Clear stored session
+ * Removes any stored authentication session from local storage and the system keychain.
+ *
+ * Deletes the sensitive session token from the OS keychain and clears non-sensitive session metadata from the local config.
  */
 export async function clearSession(): Promise<void> {
     await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
@@ -88,7 +100,9 @@ export async function clearSession(): Promise<void> {
 }
 
 /**
- * Check if session exists
+ * Determine whether an authentication session is present.
+ *
+ * @returns `true` if a stored security code exists in the system keychain, `false` otherwise.
  */
 export async function hasSession(): Promise<boolean> {
     const securityCode = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);

@@ -12,6 +12,13 @@ import { loadSession, clearSession, type StoredSession } from '../auth/session.j
 
 type Screen = 'loading' | 'login' | 'dashboard' | 'create' | 'instance' | 'plugins' | 'keys';
 
+/**
+ * Main TUI application for the HoloBridge Hosting CLI that manages screens, session state, and navigation.
+ *
+ * Renders the appropriate screen (loading, login, dashboard, create, instance, plugins, keys) based on the current session and navigation state, and wires handlers for login, logout, navigation, and back actions.
+ *
+ * @returns The root React element for the TUI application.
+ */
 export function App(): React.ReactElement {
     const { exit } = useApp();
     const [screen, setScreen] = useState<Screen>('loading');

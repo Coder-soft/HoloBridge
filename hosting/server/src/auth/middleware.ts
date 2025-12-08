@@ -26,7 +26,11 @@ declare global {
 }
 
 /**
- * Middleware to validate security code and attach user context
+ * Validate the X-Security-Code header, resolve the associated user, and attach an auth context to `req.auth`.
+ *
+ * On success sets `req.auth` to `{ userId, instanceId, user: { email, discordId, username } }` and calls `next()`.
+ * If the header is missing, the code is invalid/expired, or the user cannot be found, responds with a 401 and a specific error code.
+ * If an unexpected error occurs, responds with a 500 and an `AUTH_ERROR` code.
  */
 export async function authMiddleware(
     req: Request,
@@ -105,7 +109,9 @@ export async function authMiddleware(
 }
 
 /**
- * Middleware to check if user owns the instance they're trying to access
+ * Ensure the authenticated request belongs to the instance indicated by the route parameter `id`.
+ *
+ * Responds with 401 and error code `UNAUTHORIZED` if no auth context is present, responds with 403 and error code `FORBIDDEN` if the authenticated instanceId does not match the `id` route parameter, and calls `next()` when ownership is verified.
  */
 export function requireInstanceOwnership(
     req: Request,

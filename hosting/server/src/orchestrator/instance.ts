@@ -21,10 +21,20 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 const TAG_LENGTH = 16;
 
+/**
+ * Derives a 256-bit encryption key from the configured security encryption key.
+ *
+ * @returns A 32-byte Buffer containing the derived AES-256 key.
+ */
 function getEncryptionKey(): Buffer {
     return createHash('sha256').update(config.security.encryptionKey).digest();
 }
 
+/**
+ * Encrypts a UTF-8 string using AES-256-GCM and returns a single hex-encoded payload.
+ *
+ * @param text - The plaintext to encrypt.
+ * @returns A string formatted as `iv:tag:encrypted` where each segment is hex-encoded (IV and auth tag are 16 bytes). */
 function encrypt(text: string): string {
     const iv = randomBytes(IV_LENGTH);
     const cipher = createCipheriv(ALGORITHM, getEncryptionKey(), iv);
@@ -38,6 +48,13 @@ function encrypt(text: string): string {
     return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted}`;
 }
 
+/**
+ * Decrypts a hex-encoded AES-256-GCM payload in the format `iv:tag:encrypted`.
+ *
+ * @param encryptedText - The encrypted payload as three colon-separated hex parts: initialization vector, auth tag, and ciphertext.
+ * @returns The decrypted UTF-8 plaintext string.
+ * @throws Error if `encryptedText` does not contain exactly three colon-separated parts.
+ */
 function decrypt(encryptedText: string): string {
     const parts = encryptedText.split(':');
     if (parts.length !== 3) {
@@ -58,7 +75,11 @@ function decrypt(encryptedText: string): string {
 }
 
 /**
- * Generate a cryptographically secure random string
+ * Create a cryptographically secure random alphanumeric token.
+ *
+ * @param length - Number of random alphanumeric characters to generate (does not include `prefix`)
+ * @param prefix - Optional string to prepend to the generated token
+ * @returns The generated token: `prefix` (if provided) followed by `length` random alphanumeric characters
  */
 function generateSecureToken(length: number, prefix?: string): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -73,7 +94,12 @@ function generateSecureToken(length: number, prefix?: string): string {
 }
 
 /**
- * Create a new HoloBridge instance
+ * Create a new HoloBridge instance for a user with the provided name, Discord token, and configuration.
+ *
+ * @param userId - ID of the user who will own the instance
+ * @param request - Instance creation payload (must include `name`, `discordToken`, and optional `config` overrides)
+ * @returns The created Instance including its `id`, `userId`, `securityCode`, `name`, `containerId`, `status`, `port`, `config`, `createdAt`, and `updatedAt`
+ * @throws Error - If the instance cannot be created (for example, database insert failure)
  */
 export async function createInstance(
     userId: string,
@@ -120,7 +146,7 @@ export async function createInstance(
             config: instanceConfig as Record<string, unknown>,
         })
         .select()
-        .single();
+        .select()
         .single();
 
     const row = data as Database['public']['Tables']['instances']['Row'] | null;
@@ -153,7 +179,9 @@ export async function createInstance(
 }
 
 /**
- * Get an instance by ID
+ * Retrieve an instance record by its ID.
+ *
+ * @returns The `Instance` mapped from the database row (with `createdAt` and `updatedAt` as `Date`), or `null` if the instance is not found or a query error occurs.
  */
 export async function getInstance(instanceId: string): Promise<Instance | null> {
     const { data, error } = await supabase
@@ -183,7 +211,10 @@ export async function getInstance(instanceId: string): Promise<Instance | null> 
 }
 
 /**
- * List all instances for a user
+ * Retrieve all instances owned by a specific user, ordered by creation time (newest first).
+ *
+ * @param userId - The ID of the user whose instances should be returned
+ * @returns An array of Instance objects for the user; returns an empty array if none are found or on query error
  */
 export async function listInstances(userId: string): Promise<Instance[]> {
     const { data, error } = await supabase
@@ -211,7 +242,12 @@ export async function listInstances(userId: string): Promise<Instance[]> {
 }
 
 /**
- * Start an instance
+ * Initiates startup of an instance's container, updates the instance status in the database, and records an audit event.
+ *
+ * @param instanceId - The identifier of the instance to start
+ * @param userId - The identifier of the user performing the action; recorded in the audit log
+ * @throws Error - If the instance does not exist or has no associated container (message: 'Instance not found')
+ * @throws Error - Rethrows errors from Docker or database operations encountered while starting the container or updating status
  */
 export async function startInstance(instanceId: string, userId: string): Promise<void> {
     const instance = await getInstance(instanceId);
@@ -246,7 +282,14 @@ export async function startInstance(instanceId: string, userId: string): Promise
 }
 
 /**
- * Stop an instance
+ * Stop a running instance's container and update the instance status in the database.
+ *
+ * The instance's status is set to `stopping` before the stop action, then to `stopped`
+ * on success or to `error` if stopping fails. An audit event of type `instance.stop`
+ * is recorded on successful stop.
+ *
+ * @throws Error - If the instance does not exist or has no associated container (`"Instance not found"`).
+ * @throws Error - Re-throws any error encountered while stopping the container after setting status to `error`.
  */
 export async function stopInstance(instanceId: string, userId: string): Promise<void> {
     const instance = await getInstance(instanceId);
@@ -280,7 +323,11 @@ export async function stopInstance(instanceId: string, userId: string): Promise<
 }
 
 /**
- * Restart an instance
+ * Restarts the instance's Docker container, updates the instance status to `running` in the database, and records an audit event.
+ *
+ * @param instanceId - ID of the instance to restart
+ * @param userId - ID of the user performing the action (used for audit)
+ * @throws Error - if the instance does not exist or has no associated container
  */
 export async function restartInstance(instanceId: string, userId: string): Promise<void> {
     const instance = await getInstance(instanceId);
@@ -299,7 +346,13 @@ export async function restartInstance(instanceId: string, userId: string): Promi
 }
 
 /**
- * Delete an instance
+ * Deletes an instance and its associated container and database record.
+ *
+ * Removes the container if present, deletes the instance row (cascading related resources), and records an audit event.
+ *
+ * @param instanceId - The ID of the instance to delete.
+ * @param userId - The ID of the user performing the deletion (used for audit logging).
+ * @throws Error if the instance does not exist.
  */
 export async function deleteInstance(instanceId: string, userId: string): Promise<void> {
     const instance = await getInstance(instanceId);
@@ -326,7 +379,14 @@ export async function deleteInstance(instanceId: string, userId: string): Promis
 }
 
 /**
- * Update instance configuration
+ * Update an instance's name and/or configuration and return the updated instance.
+ *
+ * @param instanceId - The ID of the instance to update
+ * @param userId - The ID of the user performing the update (used for audit logging)
+ * @param updates - Partial updates: `name` replaces the instance name; `config` is merged into the existing configuration
+ * @returns The updated `Instance`
+ * @throws Error if the instance does not exist
+ * @throws Error if the database update fails
  */
 export async function updateInstanceConfig(
     instanceId: string,
@@ -381,7 +441,14 @@ export async function updateInstanceConfig(
 }
 
 /**
- * Get instance status with container stats
+ * Retrieve an instance along with its container status and runtime stats.
+ *
+ * @param instanceId - The ID of the instance to fetch
+ * @returns An object containing:
+ *  - `instance`: the requested Instance,
+ *  - `containerStatus`: the container's current status, or `null` if the instance has no container,
+ *  - `stats`: the container's runtime stats (`cpu` and `memory`) when the container is running, or `null` otherwise;
+ * or `null` if no instance exists with the provided `instanceId`.
  */
 export async function getInstanceWithStats(instanceId: string): Promise<{
     instance: Instance;

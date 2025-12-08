@@ -15,6 +15,12 @@ interface LoginScreenProps {
 
 type LoginState = 'idle' | 'waiting' | 'success' | 'error';
 
+/**
+ * Render a terminal UI that manages a Discord OAuth login flow and user input for a CLI app.
+ *
+ * @param onLogin - Callback invoked with the stored session after a successful login (invoked shortly after authentication completes)
+ * @returns The Ink React element for the login screen
+ */
 export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
     const { exit } = useApp();
     const [state, setState] = useState<LoginState>('idle');

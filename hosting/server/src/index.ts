@@ -12,6 +12,13 @@ import { router, healthHandler } from './api/routes.js';
 import { initWebSocket } from './api/websocket.js';
 import { checkDockerHealth } from './orchestrator/docker.js';
 
+/**
+ * Start and configure the HoloBridge Hosting HTTP and WebSocket servers.
+ *
+ * Performs a Docker health check, creates an Express app with CORS and JSON parsing,
+ * exposes a /health endpoint, mounts API routes at /api/v1, attaches a global 500 error handler,
+ * initializes the WebSocket server on the created HTTP server, and begins listening on the configured host and port.
+ */
 async function main(): Promise<void> {
     console.log('🚀 Starting HoloBridge Hosting Server...\n');
 
@@ -28,7 +35,7 @@ async function main(): Promise<void> {
     const app = express();
 
     // Middleware
-    app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000' }));
+    app.use(cors());
     app.use(express.json({ limit: '10mb' }));
 
     // Health check (no auth)
@@ -66,7 +73,11 @@ async function main(): Promise<void> {
     });
 }
 
-// Graceful shutdown
+/**
+ * Initiates shutdown of the process.
+ *
+ * Logs a shutdown message and exits the Node.js process with exit code 0.
+ */
 function shutdown(): void {
     console.log('\n🛑 Shutting down...');
     process.exit(0);

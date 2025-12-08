@@ -33,6 +33,13 @@ const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
+/**
+ * Load application configuration from environment variables, validate it against the schema, and return the validated config.
+ *
+ * If validation fails, validation issues are logged and the process is terminated with exit code 1.
+ *
+ * @returns The validated configuration object conforming to the `Config` type.
+ */
 function loadConfig(): Config {
     const rawConfig = {
         server: {

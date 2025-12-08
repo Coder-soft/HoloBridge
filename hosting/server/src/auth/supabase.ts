@@ -96,7 +96,10 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
 );
 
 /**
- * Verify a security code and return the associated user ID
+ * Look up an instance by its security code and return the instance ID and owner user ID.
+ *
+ * @param securityCode - The security code to match against the instances table
+ * @returns `{ userId, instanceId }` when a matching instance is found, `null` otherwise
  */
 export async function verifySecurityCode(securityCode: string): Promise<{ userId: string; instanceId: string } | null> {
     const { data, error } = await supabase
@@ -116,7 +119,9 @@ export async function verifySecurityCode(securityCode: string): Promise<{ userId
 }
 
 /**
- * Get user details from Supabase Auth
+ * Retrieve a Supabase Auth user by their user ID.
+ *
+ * @returns The Supabase Auth user object when found, or `null` if no user exists or an error occurs.
  */
 export async function getUserById(userId: string) {
     const { data, error } = await supabase.auth.admin.getUserById(userId);
@@ -129,7 +134,12 @@ export async function getUserById(userId: string) {
 }
 
 /**
- * Log an audit event
+ * Records an audit event in the database for a user and, optionally, an instance.
+ *
+ * @param userId - ID of the user who performed the action
+ * @param instanceId - ID of the related instance, or `null` if not applicable
+ * @param action - Short identifier or description of the action being logged
+ * @param details - Optional JSON object with additional contextual information
  */
 export async function logAudit(
     userId: string,

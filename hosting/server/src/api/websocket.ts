@@ -17,7 +17,12 @@ const instanceSubscriptions = new Map<string, Set<string>>(); // instanceId -> S
 const logSubscriptions = new Map<string, Set<string>>(); // instanceId -> Set<socketId>
 
 /**
- * Initialize WebSocket server
+ * Create and configure a Socket.IO server attached to the given HTTP server.
+ *
+ * Configures connection authentication, per-socket data, connection and disconnect handlers, and starts instance status polling.
+ *
+ * @param httpServer - The HTTP server to attach the WebSocket server to
+ * @returns The initialized Socket.IO Server instance
  */
 export function initWebSocket(httpServer: HttpServer): Server {
     io = new Server(httpServer, {
@@ -66,7 +71,12 @@ export function initWebSocket(httpServer: HttpServer): Server {
 }
 
 /**
- * Handle client events
+ * Process a client event to manage this socket's instance-status and log subscriptions.
+ *
+ * Only permits subscribing to the instance bound to the socket's authenticated `instanceId`.
+ *
+ * @param socket - The client's Socket.IO socket (expects `socket.data.instanceId` to be set)
+ * @param event - The client event instructing subscribe/unsubscribe actions for instance status or logs
  */
 function handleClientEvent(socket: Socket, event: ClientEvent): void {
     const userInstanceId = socket.data['instanceId'] as string;
@@ -97,7 +107,13 @@ function handleClientEvent(socket: Socket, event: ClientEvent): void {
 }
 
 /**
- * Add a subscription
+ * Ensure the given socket ID is recorded as subscribed to the specified instance.
+ *
+ * Adds `socketId` to the set of subscribers for `instanceId` within `map`, creating the set if it does not exist.
+ *
+ * @param map - Mapping from instance IDs to sets of subscribed socket IDs
+ * @param instanceId - The instance ID whose subscription set will be updated
+ * @param socketId - The socket ID to add to the subscription set
  */
 function addSubscription(
     map: Map<string, Set<string>>,
@@ -111,7 +127,11 @@ function addSubscription(
 }
 
 /**
- * Remove a subscription
+ * Remove a socket ID subscription for a specific instance and remove the instance entry if no subscribers remain.
+ *
+ * @param map - Map from instance ID to a set of subscribed socket IDs
+ * @param instanceId - The instance ID whose subscription should be removed
+ * @param socketId - The socket ID to remove from the instance's subscription set
  */
 function removeSubscription(
     map: Map<string, Set<string>>,
@@ -128,7 +148,9 @@ function removeSubscription(
 }
 
 /**
- * Clean up all subscriptions for a socket
+ * Remove a socket from all instance and log subscription sets.
+ *
+ * @param socketId - The socket ID to remove from every subscription mapping
  */
 function cleanupSubscriptions(socketId: string): void {
     for (const sockets of instanceSubscriptions.values()) {
@@ -140,7 +162,11 @@ function cleanupSubscriptions(socketId: string): void {
 }
 
 /**
- * Emit an event to subscribed sockets
+ * Emit a server event to all sockets subscribed to a given instance.
+ *
+ * @param map - Map from instance ID to the set of subscribed socket IDs
+ * @param instanceId - The instance ID whose subscribers should receive the event
+ * @param event - The server event to emit to each subscriber
  */
 function emitToSubscribers(
     map: Map<string, Set<string>>,
@@ -156,7 +182,10 @@ function emitToSubscribers(
 }
 
 /**
- * Broadcast instance status update
+ * Broadcasts an instance status update to all sockets subscribed to the given instance.
+ *
+ * @param instanceId - The instance identifier whose subscribers will receive the status update
+ * @param status - One of: `'running'`, `'stopped'`, `'starting'`, `'stopping'`, or `'error'`
  */
 export function broadcastInstanceStatus(instanceId: string, status: string): void {
     emitToSubscribers(instanceSubscriptions, instanceId, {
@@ -169,7 +198,11 @@ export function broadcastInstanceStatus(instanceId: string, status: string): voi
 }
 
 /**
- * Broadcast instance stats update
+ * Broadcasts CPU and memory usage for an instance to all subscribers of that instance.
+ *
+ * @param instanceId - The ID of the instance whose stats are being broadcast
+ * @param cpu - The instance CPU usage value
+ * @param memory - The instance memory usage value
  */
 export function broadcastInstanceStats(
     instanceId: string,
@@ -183,7 +216,9 @@ export function broadcastInstanceStats(
 }
 
 /**
- * Start polling for instance status updates
+ * Periodically polls Docker for status and resource usage of currently subscribed instances and broadcasts updates.
+ *
+ * Polls only instanceIds that have active subscriptions, runs every 5 seconds, emits instance status events and, when a container is running, emits CPU and memory stats. Errors encountered during polling are logged to the console.
  */
 function startStatusPolling(): void {
     setInterval(async () => {
@@ -213,7 +248,12 @@ function startStatusPolling(): void {
 }
 
 /**
- * Start streaming logs for an instance
+ * Stream a container's logs to a connected client's socket for the specified instance.
+ *
+ * Streams recent and live log lines from the container that matches `instanceId` and emits them to `socket` as messages of type `instance.logs`. If no container is found a single message with `[Container not found]` is emitted. The stream stops automatically if the socket unsubscribes from the instance; when the stream ends or errors, a corresponding line (`[Log stream ended]` or `[Error: <message>]`) is emitted.
+ *
+ * @param instanceId - The instance identifier whose container logs should be streamed
+ * @param socket - The client's Socket.IO socket that will receive log messages
  */
 async function startLogStreaming(instanceId: string, socket: Socket): Promise<void> {
     try {

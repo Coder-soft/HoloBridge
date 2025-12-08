@@ -22,6 +22,17 @@ interface MenuItem {
     value: string;
 }
 
+/**
+ * Render the TUI dashboard for managing hosting instances.
+ *
+ * Shows a header with the current user, instance statistics, and a panel that presents loading, error, or list views.
+ * The list view displays instances with status, port, CPU, and memory and supports keyboard-driven actions (create, refresh, start, stop, edit, plugins, keys, logout, quit).
+ *
+ * @param session - Current stored session (used to display the username)
+ * @param onNavigate - Callback to navigate to another screen; called with a target screen name and optional data
+ * @param onLogout - Callback invoked to perform logout
+ * @returns The React element for the dashboard screen
+ */
 export function DashboardScreen({ session, onNavigate, onLogout }: DashboardScreenProps): React.ReactElement {
     const { exit } = useApp();
     const [viewState, setViewState] = useState<ViewState>('loading');

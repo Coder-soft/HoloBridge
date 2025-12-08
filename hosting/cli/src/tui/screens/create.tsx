@@ -15,6 +15,13 @@ interface CreateScreenProps {
 
 type Step = 'name' | 'token' | 'confirm' | 'creating' | 'done' | 'error';
 
+/**
+ * Interactive Ink TUI screen that walks the user through creating a new HoloBridge instance.
+ *
+ * @param onBack - Called when the user cancels or navigates back from the create flow.
+ * @param onCreated - Called after a successful creation with the created instance.
+ * @returns The rendered Ink React element for the create-instance screen.
+ */
 export function CreateScreen({ onBack, onCreated }: CreateScreenProps): React.ReactElement {
     const { exit } = useApp();
     const [step, setStep] = useState<Step>('name');
