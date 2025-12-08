@@ -19,12 +19,12 @@ async function main(): Promise<void> {
         console.log('');
 
         // Create API server (needed for plugin context)
-        const { io } = createApiServer();
+        const { io, app } = createApiServer();
 
         // Initialize and load plugins
         if (config.plugins.enabled) {
             console.log('🔌 Initializing plugin system...');
-            pluginManager.setContext(discordClient, io, config);
+            pluginManager.setContext(discordClient, io, config, app);
             await pluginManager.loadPlugins();
             console.log('');
         }
