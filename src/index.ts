@@ -2,6 +2,7 @@ import { loginDiscord, waitForReady, discordClient } from './discord/client.js';
 import { registerDiscordEvents } from './discord/events/index.js';
 import { createApiServer, startApiServer } from './api/server.js';
 import { pluginManager } from './plugins/manager.js';
+import { shutdownRateLimiter } from './api/middleware/rateLimit.js';
 import { config } from './config/index.js';
 
 async function main(): Promise<void> {
@@ -43,6 +44,9 @@ async function main(): Promise<void> {
 // Handle graceful shutdown
 async function shutdown(): Promise<void> {
     console.log('\n🛑 Shutting down...');
+
+    // Clean up rate limiter intervals
+    shutdownRateLimiter();
 
     // Unload plugins gracefully
     if (pluginManager.count > 0) {

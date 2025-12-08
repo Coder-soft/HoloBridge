@@ -168,6 +168,11 @@ export function createEventHelpers(eventBus: PluginEventBus) {
 }
 
 /**
+ * Type for the event helpers object returned by createEventHelpers
+ */
+export type EventHelpers = ReturnType<typeof createEventHelpers>;
+
+/**
  * Plugin definition options for definePlugin helper
  */
 export interface PluginDefinition {

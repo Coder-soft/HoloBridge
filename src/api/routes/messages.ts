@@ -2,12 +2,22 @@ import { Router, type Request } from 'express';
 import { messageService } from '../../discord/services/index.js';
 import { SendMessageSchema, EditMessageSchema, GetMessagesSchema } from '../../types/api.types.js';
 
+/** Route params for message endpoints (merged from parent router) */
+interface MessageParams {
+    channelId?: string;
+    messageId?: string;
+    emoji?: string;
+}
+
 const router = Router({ mergeParams: true });
 
-// Helper to get merged params
+/**
+ * Helper to get merged params with type safety.
+ * Express mergeParams merges parent route params, so channelId comes from the parent router.
+ */
 function getParams(req: Request): { channelId: string; messageId?: string; emoji?: string } {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const params = req.params as any;
+    // Params are merged from parent router via mergeParams: true
+    const params = req.params as MessageParams;
     return { channelId: params.channelId ?? '', messageId: params.messageId, emoji: params.emoji };
 }
 

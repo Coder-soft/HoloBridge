@@ -214,7 +214,9 @@ export class PluginManager {
                         normalizedArgs = args.map(wrapHandler);
                     }
 
-                    pluginSubRouter!.use(...normalizedArgs as Parameters<typeof pluginSubRouter.use>);
+                    // pluginSubRouter is guaranteed non-null here since we just created it
+                    const router = pluginSubRouter as Router;
+                    router.use(...normalizedArgs as Parameters<typeof router.use>);
                 },
             };
 

@@ -1,4 +1,5 @@
 import type { Server as SocketIOServer } from 'socket.io';
+import type { User, GuildScheduledEvent } from 'discord.js';
 import { discordClient } from '../client.js';
 import {
     serializeMessage,
@@ -267,7 +268,8 @@ export function registerDiscordEvents(): void {
 
     discordClient.on('userUpdate', (oldUser, newUser) => {
         // oldUser may be partial, so we only serialize if not partial
-        const oldSerialized = oldUser.partial ? null : serializeUser(oldUser as any);
+        // Type assertion is safe here because we've checked partial === false
+        const oldSerialized = oldUser.partial ? null : serializeUser(oldUser as User);
         broadcastEvent({
             event: 'userUpdate',
             guildId: null,
@@ -605,25 +607,27 @@ export function registerDiscordEvents(): void {
 
     discordClient.on('guildScheduledEventUpdate', (oldEvent, newEvent) => {
         // oldEvent may be partial
+        // Type assertions are safe here because we've checked partial === false
         const oldSerialized = oldEvent && !oldEvent.partial
-            ? serializeScheduledEvent(oldEvent as any)
+            ? serializeScheduledEvent(oldEvent as GuildScheduledEvent)
             : null;
         broadcastEvent({
             event: 'guildScheduledEventUpdate',
             guildId: newEvent.guildId,
             data: {
                 old: oldSerialized,
-                new: serializeScheduledEvent(newEvent as any),
+                new: serializeScheduledEvent(newEvent as GuildScheduledEvent),
             },
         });
     });
 
     discordClient.on('guildScheduledEventDelete', (event) => {
         // event may be partial, but we still want to broadcast the deletion
+        // Type assertion needed as Discord.js provides partial type
         broadcastEvent({
             event: 'guildScheduledEventDelete',
             guildId: event.guildId,
-            data: serializeScheduledEvent(event as any),
+            data: serializeScheduledEvent(event as GuildScheduledEvent),
         });
     });
 
