@@ -9,7 +9,7 @@ import type {
     SocketData,
 } from './events.types.js';
 import type { PluginEventBus, EventSubscription } from '../plugins/event-bus.js';
-import type { PluginRouter, PluginLogger } from '../plugins/sdk.js';
+import type { PluginRouter, PluginLogger, EventHelpers } from '../plugins/sdk.js';
 
 /**
  * The context passed to plugins on load.
@@ -92,13 +92,7 @@ export interface HoloPlugin {
      * ```
      */
     events?: (
-        helpers: {
-            onDiscord: <T = unknown>(event: string, handler: (data: T) => void | Promise<void>) => EventSubscription;
-            onCustom: <T = Record<string, unknown>>(event: string, handler: (data: T) => void | Promise<void>) => EventSubscription;
-            emit: <T extends Record<string, unknown>>(event: string, data: T) => void;
-            onPluginLoaded: (handler: (data: { name: string; version: string }) => void) => EventSubscription;
-            onPluginUnloaded: (handler: (data: { name: string }) => void) => EventSubscription;
-        },
+        helpers: EventHelpers,
         ctx: PluginContext
     ) => EventSubscription[];
 

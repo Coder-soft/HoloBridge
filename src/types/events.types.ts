@@ -563,7 +563,14 @@ export interface GuildScheduledEventUpdateEvent {
 export interface GuildScheduledEventDeleteEvent {
     event: 'guildScheduledEventDelete';
     guildId: string;
-    data: SerializedScheduledEvent;
+    data: SerializedScheduledEvent | {
+        /** Event ID (always available even for partial events) */
+        id: string;
+        /** Guild ID (always available even for partial events) */
+        guildId: string;
+        /** Indicates this is a partial event with limited data */
+        partial: true;
+    };
 }
 
 export interface GuildScheduledEventUserAddEvent {
