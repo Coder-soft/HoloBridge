@@ -186,7 +186,10 @@ export function broadcastInstanceStats(
  * Start polling for instance status updates
  */
 function startStatusPolling(): void {
-    setInterval(async () => {
+let statusPollInterval: NodeJS.Timeout | null = null;
+
+function startStatusPolling(): void {
+    statusPollInterval = setInterval(async () => {
         for (const instanceId of instanceSubscriptions.keys()) {
             try {
                 // Get container info (would need to look up containerId from instanceId)
@@ -209,7 +212,15 @@ function startStatusPolling(): void {
                 console.error(`Error polling status for ${instanceId}:`, error);
             }
         }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
+}
+
+// Add cleanup function
+export function cleanup(): void {
+    if (statusPollInterval) {
+        clearInterval(statusPollInterval);
+    }
+}
 }
 
 /**
