@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS public.instances (
     security_code TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     container_id TEXT,
-    status TEXT NOT NULL DEFAULT 'stopped',
+    status TEXT NOT NULL DEFAULT 'stopped' CHECK (status IN ('running', 'stopped', 'starting', 'stopping', 'error')),
     port INTEGER,
     discord_token_encrypted TEXT,
     config JSONB NOT NULL DEFAULT '{}',

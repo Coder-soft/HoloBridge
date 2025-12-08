@@ -80,7 +80,31 @@ export async function createInstance(
     request: CreateInstanceRequest
 ): Promise<Instance> {
     // Generate security code and API key
-    const securityCode = generateSecureToken(SECURITY_CODE_LENGTH);
+    // Generate security code and API key
+    let securityCode = '';
+    let isUnique = false;
+    let attempts = 0;
+
+    // Ensure security code uniqueness
+    while (!isUnique && attempts < 5) {
+        securityCode = generateSecureToken(SECURITY_CODE_LENGTH);
+
+        const { data } = await supabase
+            .from('instances')
+            .select('id')
+            .eq('security_code', securityCode)
+            .single();
+
+        if (!data) {
+            isUnique = true;
+        }
+        attempts++;
+    }
+
+    if (!isUnique) {
+        throw new Error('Failed to generate unique security code after multiple attempts');
+    }
+
     const apiKey = generateSecureToken(API_KEY_LENGTH, API_KEY_PREFIX);
 
     // Encrypt the Discord token
@@ -121,7 +145,7 @@ export async function createInstance(
         })
         .select()
         .single();
-        .single();
+
 
     const row = data as Database['public']['Tables']['instances']['Row'] | null;
 

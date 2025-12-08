@@ -261,6 +261,7 @@ export async function getContainerStats(containerId: string): Promise<{ cpu: num
         const stats = await container.stats({ stream: false });
 
         // Calculate CPU percentage
+        const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
         const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
         const cpuCount = stats.cpu_stats.online_cpus || 1;
         const cpuPercent = systemDelta > 0 ? (cpuDelta / systemDelta) * cpuCount * 100 : 0;

@@ -9,12 +9,14 @@ import { Server, Socket } from 'socket.io';
 import { verifySecurityCode } from '../auth/supabase.js';
 import * as docker from '../orchestrator/docker.js';
 import type { ServerEvent, ClientEvent } from '../../../shared/src/types.js';
+import { Readable } from 'stream';
 
 let io: Server | null = null;
 
 // Track subscriptions
 const instanceSubscriptions = new Map<string, Set<string>>(); // instanceId -> Set<socketId>
 const logSubscriptions = new Map<string, Set<string>>(); // instanceId -> Set<socketId>
+const activeStreams = new Map<string, Readable>(); // `${socketId}:${instanceId}` -> Stream
 
 /**
  * Initialize WebSocket server
@@ -92,6 +94,12 @@ function handleClientEvent(socket: Socket, event: ClientEvent): void {
 
         case 'unsubscribe.logs':
             removeSubscription(logSubscriptions, event.instanceId, socket.id);
+            const key = `${socket.id}:${event.instanceId}`;
+            const stream = activeStreams.get(key);
+            if (stream) {
+                stream.destroy();
+                activeStreams.delete(key);
+            }
             break;
     }
 }
@@ -136,6 +144,14 @@ function cleanupSubscriptions(socketId: string): void {
     }
     for (const sockets of logSubscriptions.values()) {
         sockets.delete(socketId);
+    }
+
+    // Clean up active streams
+    for (const [key, stream] of activeStreams.entries()) {
+        if (key.startsWith(`${socketId}:`)) {
+            stream.destroy();
+            activeStreams.delete(key);
+        }
     }
 }
 
@@ -185,10 +201,11 @@ export function broadcastInstanceStats(
 /**
  * Start polling for instance status updates
  */
-function startStatusPolling(): void {
 let statusPollInterval: NodeJS.Timeout | null = null;
 
 function startStatusPolling(): void {
+    if (statusPollInterval) return;
+
     statusPollInterval = setInterval(async () => {
         for (const instanceId of instanceSubscriptions.keys()) {
             try {
@@ -219,8 +236,8 @@ function startStatusPolling(): void {
 export function cleanup(): void {
     if (statusPollInterval) {
         clearInterval(statusPollInterval);
+        statusPollInterval = null;
     }
-}
 }
 
 /**
@@ -245,7 +262,10 @@ async function startLogStreaming(instanceId: string, socket: Socket): Promise<vo
         const logStream = await docker.getContainerLogs(container.id, {
             tail: 50,
             follow: true
-        });
+        } as any) as any;
+
+        // Track stream
+        activeStreams.set(`${socket.id}:${instanceId}`, logStream);
 
         logStream.on('data', (chunk: Buffer) => {
             // Check if socket is still subscribed
