@@ -1,13 +1,46 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import { config } from '../../config/index.js';
+import type { ApiScope, ApiKeyRecord } from '../../types/auth.types.js';
 
+/**
+ * Extended request with API key context
+ */
 export interface AuthenticatedRequest extends Request {
-    apiKey: string;
+    apiKey: ApiKeyRecord;
 }
 
 /**
- * API Key authentication middleware
- * Checks for X-API-Key header and validates against configured key
+ * Find an API key record by its key value.
+ * Checks both the new apiKeys array and legacy single apiKey.
+ */
+function findApiKey(key: string): ApiKeyRecord | null {
+    // Check new multi-key system first
+    const found = config.api.apiKeys.find((k) => k.key === key);
+    if (found) {
+        return {
+            ...found,
+            scopes: found.scopes as ApiScope[],
+            createdAt: found.createdAt || new Date(),
+        };
+    }
+
+    // Fall back to legacy single key (has admin scope)
+    if (key === config.api.apiKey) {
+        return {
+            id: 'legacy',
+            name: 'Legacy API Key',
+            key: key,
+            scopes: ['admin'],
+            createdAt: new Date(),
+        };
+    }
+
+    return null;
+}
+
+/**
+ * API Key authentication middleware.
+ * Validates API key and attaches key context to request.
  */
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
     const apiKey = req.headers['x-api-key'];
@@ -21,7 +54,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
         return;
     }
 
-    if (apiKey !== config.api.apiKey) {
+    const keyRecord = findApiKey(apiKey);
+    if (!keyRecord) {
         res.status(401).json({
             success: false,
             error: 'Invalid API key',
@@ -30,8 +64,54 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
         return;
     }
 
-    (req as AuthenticatedRequest).apiKey = apiKey;
+    // Attach key record to request for downstream use
+    (req as AuthenticatedRequest).apiKey = keyRecord;
     next();
+}
+
+/**
+ * Middleware factory to require specific scope(s).
+ * Use after authMiddleware to enforce granular permissions.
+ * 
+ * @example
+ * router.post('/messages', requireScope('write:messages'), handler);
+ */
+export function requireScope(...requiredScopes: ApiScope[]): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction): void => {
+        const keyRecord = (req as AuthenticatedRequest).apiKey;
+
+        if (!keyRecord) {
+            res.status(401).json({
+                success: false,
+                error: 'Not authenticated',
+                code: 'NOT_AUTHENTICATED',
+            });
+            return;
+        }
+
+        // Admin scope bypasses all checks
+        if (keyRecord.scopes.includes('admin')) {
+            return next();
+        }
+
+        // Check if key has all required scopes
+        const hasAllScopes = requiredScopes.every((scope) =>
+            keyRecord.scopes.includes(scope)
+        );
+
+        if (!hasAllScopes) {
+            res.status(403).json({
+                success: false,
+                error: `Missing required scope(s): ${requiredScopes.join(', ')}`,
+                code: 'INSUFFICIENT_SCOPE',
+                required: requiredScopes,
+                granted: keyRecord.scopes,
+            });
+            return;
+        }
+
+        next();
+    };
 }
 
 /**
@@ -58,3 +138,4 @@ export function notFoundHandler(req: Request, res: Response): void {
         code: 'NOT_FOUND',
     });
 }
+

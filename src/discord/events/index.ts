@@ -41,6 +41,8 @@ export function setSocketServer(
     io = server;
 }
 
+import { pluginManager } from '../../plugins/manager.js';
+
 /**
  * Broadcast a Discord event to subscribed clients
  */
@@ -55,6 +57,9 @@ function broadcastEvent(payload: DiscordEventPayload): void {
         // Broadcast to all connected clients for DM/global events
         io.emit('discord', payload);
     }
+
+    // Notify plugins of this event
+    void pluginManager.emit(payload.event, payload.data);
 
     if (config.debug) {
         console.log(`📤 Broadcast event: ${payload.event}${guildId ? ` (guild: ${guildId})` : ''}`);
@@ -183,7 +188,7 @@ export function registerDiscordEvents(): void {
         const poll = pollAnswer.poll;
         const message = poll?.message;
         if (!message) return; // Skip if message is not available
-        
+
         broadcastEvent({
             event: 'messagePollVoteAdd',
             guildId: message.guildId ?? null,
@@ -201,7 +206,7 @@ export function registerDiscordEvents(): void {
         const poll = pollAnswer.poll;
         const message = poll?.message;
         if (!message) return; // Skip if message is not available
-        
+
         broadcastEvent({
             event: 'messagePollVoteRemove',
             guildId: message.guildId ?? null,

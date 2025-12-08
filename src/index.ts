@@ -1,6 +1,8 @@
-import { loginDiscord, waitForReady } from './discord/client.js';
+import { loginDiscord, waitForReady, discordClient } from './discord/client.js';
 import { registerDiscordEvents } from './discord/events/index.js';
-import { startApiServer } from './api/server.js';
+import { createApiServer, startApiServer } from './api/server.js';
+import { pluginManager } from './plugins/manager.js';
+import { config } from './config/index.js';
 
 async function main(): Promise<void> {
     console.log('🚀 Starting Holo Bridge...\n');
@@ -16,6 +18,17 @@ async function main(): Promise<void> {
         registerDiscordEvents();
         console.log('');
 
+        // Create API server (needed for plugin context)
+        const { io, app } = createApiServer();
+
+        // Initialize and load plugins
+        if (config.plugins.enabled) {
+            console.log('🔌 Initializing plugin system...');
+            pluginManager.setContext(discordClient, io, config, app);
+            await pluginManager.loadPlugins();
+            console.log('');
+        }
+
         // Start API server
         await startApiServer();
         console.log('');
@@ -28,15 +41,21 @@ async function main(): Promise<void> {
 }
 
 // Handle graceful shutdown
-process.on('SIGINT', () => {
+async function shutdown(): Promise<void> {
     console.log('\n🛑 Shutting down...');
-    process.exit(0);
-});
 
-process.on('SIGTERM', () => {
-    console.log('\n🛑 Shutting down...');
+    // Unload plugins gracefully
+    if (pluginManager.count > 0) {
+        console.log('🔌 Unloading plugins...');
+        await pluginManager.unloadAll();
+    }
+
     process.exit(0);
-});
+}
+
+process.on('SIGINT', () => void shutdown());
+process.on('SIGTERM', () => void shutdown());
 
 // Start the application
 main();
+

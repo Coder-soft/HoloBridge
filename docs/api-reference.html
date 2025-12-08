@@ -18,6 +18,7 @@
                 <a href="getting-started.html">Getting Started</a>
                 <a href="api-reference.html" class="active">API Reference</a>
                 <a href="websocket.html">WebSocket</a>
+                <a href="security.html">Security</a>
                 <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
             </nav>
         </div>
@@ -70,6 +71,37 @@
                     <li><a href="#create-role">Create Role</a></li>
                     <li><a href="#edit-role">Edit Role</a></li>
                     <li><a href="#delete-role">Delete Role</a></li>
+                </ul>
+                <h4>Stickers</h4>
+                <ul>
+                    <li><a href="#get-stickers">List Stickers</a></li>
+                    <li><a href="#get-sticker">Get Sticker</a></li>
+                    <li><a href="#create-sticker">Create Sticker</a></li>
+                    <li><a href="#edit-sticker">Edit Sticker</a></li>
+                    <li><a href="#delete-sticker">Delete Sticker</a></li>
+                </ul>
+                <h4>Scheduled Events</h4>
+                <ul>
+                    <li><a href="#get-events">List Events</a></li>
+                    <li><a href="#get-event">Get Event</a></li>
+                    <li><a href="#create-event">Create Event</a></li>
+                    <li><a href="#edit-event">Edit Event</a></li>
+                    <li><a href="#delete-event">Delete Event</a></li>
+                </ul>
+                <h4>AutoMod</h4>
+                <ul>
+                    <li><a href="#get-automod-rules">List Rules</a></li>
+                    <li><a href="#get-automod-rule">Get Rule</a></li>
+                    <li><a href="#create-automod-rule">Create Rule</a></li>
+                    <li><a href="#edit-automod-rule">Edit Rule</a></li>
+                    <li><a href="#delete-automod-rule">Delete Rule</a></li>
+                </ul>
+                <h4>Other Resources</h4>
+                <ul>
+                    <li><a href="#stage-instances">Stage Instances</a></li>
+                    <li><a href="#invites">Invites</a></li>
+                    <li><a href="#webhooks">Webhooks</a></li>
+                    <li><a href="#emojis">Emojis</a></li>
                 </ul>
             </aside>
 
@@ -769,6 +801,114 @@
                         <h4><span class="method method-patch">PATCH</span> <span
                                 class="endpoint">/api/guilds/:guildId/roles/:roleId/permissions</span></h4>
                         <p>Set role permissions. Send <code>permissions</code> (bitfield string) in body.</p>
+                    </div>
+                </section>
+                </section>
+
+                <section id="stickers">
+                    <h2>Stickers</h2>
+                    <div class="api-section" id="get-stickers">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/stickers</span></h4>
+                        <p>List all stickers in a guild.</p>
+                    </div>
+                    <div class="api-section" id="get-sticker">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/stickers/:stickerId</span></h4>
+                        <p>Get a specific sticker.</p>
+                    </div>
+                    <div class="api-section" id="create-sticker">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/stickers</span></h4>
+                        <p>Create a new sticker.</p>
+                    </div>
+                    <div class="api-section" id="edit-sticker">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/stickers/:stickerId</span></h4>
+                        <p>Edit a sticker.</p>
+                    </div>
+                    <div class="api-section" id="delete-sticker">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/guilds/:guildId/stickers/:stickerId</span></h4>
+                        <p>Delete a sticker.</p>
+                    </div>
+                </section>
+
+                <section id="scheduled-events">
+                    <h2>Scheduled Events</h2>
+                    <div class="api-section" id="get-events">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/scheduled-events</span></h4>
+                        <p>List all scheduled events.</p>
+                    </div>
+                    <div class="api-section" id="get-event">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/scheduled-events/:eventId</span></h4>
+                        <p>Get a specific event.</p>
+                    </div>
+                    <div class="api-section" id="create-event">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/scheduled-events</span></h4>
+                        <p>Create a new event.</p>
+                    </div>
+                    <div class="api-section" id="edit-event">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/scheduled-events/:eventId</span></h4>
+                        <p>Edit an event.</p>
+                    </div>
+                    <div class="api-section" id="delete-event">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/guilds/:guildId/scheduled-events/:eventId</span></h4>
+                        <p>Delete an event.</p>
+                    </div>
+                </section>
+
+                <section id="automod">
+                    <h2>AutoMod</h2>
+                    <div class="api-section" id="get-automod-rules">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/auto-moderation/rules</span></h4>
+                        <p>List all auto-moderation rules.</p>
+                    </div>
+                    <div class="api-section" id="get-automod-rule">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/auto-moderation/rules/:ruleId</span></h4>
+                        <p>Get a specific rule.</p>
+                    </div>
+                    <div class="api-section" id="create-automod-rule">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/auto-moderation/rules</span></h4>
+                        <p>Create a new rule.</p>
+                    </div>
+                    <div class="api-section" id="edit-automod-rule">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/auto-moderation/rules/:ruleId</span></h4>
+                        <p>Edit a rule.</p>
+                    </div>
+                    <div class="api-section" id="delete-automod-rule">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/guilds/:guildId/auto-moderation/rules/:ruleId</span></h4>
+                        <p>Delete a rule.</p>
+                    </div>
+                </section>
+
+                <section id="other-resources">
+                    <h2>Other Resources</h2>
+                    <div class="api-section" id="stage-instances">
+                        <h4>Stage Instances</h4>
+                        <p>Endpoints: <code>/api/stage-instances</code> (GET, POST, PATCH, DELETE)</p>
+                    </div>
+                    <div class="api-section" id="invites">
+                        <h4>Invites</h4>
+                        <p>Endpoints: <code>/api/invites/:code</code> (GET, DELETE)</p>
+                    </div>
+                    <div class="api-section" id="webhooks">
+                        <h4>Webhooks</h4>
+                        <p>Endpoints: <code>/api/webhooks/:webhookId</code> (GET, PATCH, DELETE)</p>
+                    </div>
+                    <div class="api-section" id="emojis">
+                        <h4>Emojis</h4>
+                        <p>Endpoints: <code>/api/guilds/:guildId/emojis</code> (GET, POST, PATCH, DELETE)</p>
                     </div>
                 </section>
             </div>
