@@ -353,8 +353,6 @@ export async function updateInstanceConfig(
     const { data, error } = await supabase
         .from('instances')
         .update(updateData)
-        .eq('id', instanceId)
-        .select()
         .select()
         .single();
 
