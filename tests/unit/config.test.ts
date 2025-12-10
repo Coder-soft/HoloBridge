@@ -1,20 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import { z } from 'zod';
-
-// Mock config schema for testing
-const configSchema = z.object({
-    discordToken: z.string().min(1),
-    apiKey: z.string().min(1),
-    port: z.number().int().positive().default(3000),
-    debug: z.boolean().default(false),
-});
+import { configSchema } from '../../src/config/index.js';
 
 describe('Config Validation', () => {
     it('should accept valid configuration', () => {
         const validConfig = {
-            discordToken: 'test-token',
-            apiKey: 'test-api-key',
-            port: 3000,
+            discord: {
+                token: 'test-token',
+            },
+            api: {
+                port: 3000,
+                apiKey: 'test-api-key',
+                apiKeys: [],
+            },
+            plugins: {
+                enabled: true,
+                directory: 'plugins',
+            },
+            rateLimit: {
+                enabled: true,
+                windowMs: 60000,
+                maxRequests: 100,
+            },
             debug: false,
         };
 
@@ -22,19 +28,34 @@ describe('Config Validation', () => {
         expect(result.success).toBe(true);
     });
 
-    it('should reject missing discordToken', () => {
+    it('should reject missing discord token', () => {
         const invalidConfig = {
-            apiKey: 'test-api-key',
+            discord: {}, // Missing token
+            api: {
+                port: 3000,
+                apiKey: 'test-api-key',
+            },
+            plugins: { enabled: true, directory: 'plugins' },
+            rateLimit: { enabled: true, windowMs: 60000, maxRequests: 100 },
+            debug: false,
         };
 
         const result = configSchema.safeParse(invalidConfig);
         expect(result.success).toBe(false);
     });
 
-    it('should reject empty discordToken', () => {
+    it('should reject empty discord token', () => {
         const invalidConfig = {
-            discordToken: '',
-            apiKey: 'test-api-key',
+            discord: {
+                token: '',
+            },
+            api: {
+                port: 3000,
+                apiKey: 'test-api-key',
+            },
+            plugins: { enabled: true, directory: 'plugins' },
+            rateLimit: { enabled: true, windowMs: 60000, maxRequests: 100 },
+            debug: false,
         };
 
         const result = configSchema.safeParse(invalidConfig);
@@ -43,20 +64,34 @@ describe('Config Validation', () => {
 
     it('should apply default values', () => {
         const minimalConfig = {
-            discordToken: 'test-token',
-            apiKey: 'test-api-key',
+            discord: {
+                token: 'test-token',
+            },
+            api: {
+                apiKey: 'test-api-key',
+            },
+            // Other fields should be defaulted
+            plugins: {},
+            rateLimit: {},
         };
 
         const result = configSchema.parse(minimalConfig);
-        expect(result.port).toBe(3000);
+        expect(result.api.port).toBe(3000);
         expect(result.debug).toBe(false);
+        expect(result.plugins.enabled).toBe(true);
+        expect(result.rateLimit.maxRequests).toBe(100);
     });
 
     it('should reject invalid port', () => {
         const invalidConfig = {
-            discordToken: 'test-token',
-            apiKey: 'test-api-key',
-            port: -1,
+            discord: { token: 'test-token' },
+            api: {
+                apiKey: 'test-api-key',
+                port: -1,
+            },
+            plugins: { enabled: true, directory: 'plugins' },
+            rateLimit: { enabled: true, windowMs: 60000, maxRequests: 100 },
+            debug: false,
         };
 
         const result = configSchema.safeParse(invalidConfig);

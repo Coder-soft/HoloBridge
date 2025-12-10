@@ -726,7 +726,9 @@ export function registerDiscordEvents(): void {
     discordClient.on('interactionCreate', (interaction) => {
         if (!io) return;
         // Use specialized handler for full interaction support
-        void handleInteractionCreate(interaction, io);
+        handleInteractionCreate(interaction, io).catch((error) => {
+            console.error('❌ Error handling interaction:', error);
+        });
     });
 
     // ========== INVITE EVENTS ==========

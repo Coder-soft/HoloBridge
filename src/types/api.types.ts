@@ -166,7 +166,9 @@ const ApplicationCommandOptionChoiceSchema = z.object({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ApplicationCommandOptionSchema: z.ZodType<any> = z.lazy(() =>
     z.object({
-        name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u),
+        name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u).refine((val) => val === val.toLowerCase(), {
+            message: 'Name must be lowercase',
+        }),
         name_localizations: z.record(z.string()).optional().nullable(),
         description: z.string().min(1).max(100),
         description_localizations: z.record(z.string()).optional().nullable(),
@@ -184,7 +186,9 @@ const ApplicationCommandOptionSchema: z.ZodType<any> = z.lazy(() =>
 );
 
 export const CreateApplicationCommandSchema = z.object({
-    name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u),
+    name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u).refine((val) => val === val.toLowerCase(), {
+        message: 'Name must be lowercase',
+    }),
     name_localizations: z.record(z.string()).optional().nullable(),
     description: z.string().min(1).max(100),
     description_localizations: z.record(z.string()).optional().nullable(),

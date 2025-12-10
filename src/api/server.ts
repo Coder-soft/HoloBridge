@@ -118,7 +118,7 @@ export function createApiServer(): ApiServerInstance {
     app.use('/api/webhooks', webhooksRouter);
     app.use('/api/commands', commandsRouter);
     app.use('/api/guilds/:guildId/commands', guildCommandsRouter);
-    app.use('/api/guilds/:guildId/commands', guildCommandsRouter);
+
     app.use('/api/interactions', interactionsRouter);
     app.use('/api/guilds/:guildId/voice', voiceRouter);
 

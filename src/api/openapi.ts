@@ -1,5 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3, extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { CreateApplicationCommandSchema } from '../types/api.types.js';
 
 // Extend Zod with OpenAPI support
 extendZodWithOpenApi(z);
@@ -22,6 +23,7 @@ const SuccessResponseSchema = z.object({
 // Register schemas
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('SuccessResponse', SuccessResponseSchema);
+registry.register('CreateApplicationCommand', CreateApplicationCommandSchema);
 
 // --- Health Endpoint ---
 registry.registerPath({
@@ -36,10 +38,15 @@ registry.registerPath({
             description: 'Server is healthy',
             content: {
                 'application/json': {
-                    schema: z.object({
-                        status: z.literal('ok'),
-                        timestamp: z.string(),
-                    }),
+                    schema: { $ref: '#/components/schemas/SuccessResponse' },
+                },
+            },
+        },
+        500: {
+            description: 'Internal Server Error',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/ErrorResponse' },
                 },
             },
         },
@@ -58,15 +65,15 @@ registry.registerPath({
             description: 'List of guilds',
             content: {
                 'application/json': {
-                    schema: z.object({
-                        success: z.literal(true),
-                        data: z.array(z.object({
-                            id: z.string(),
-                            name: z.string(),
-                            icon: z.string().nullable(),
-                            memberCount: z.number(),
-                        })),
-                    }),
+                    schema: { $ref: '#/components/schemas/SuccessResponse' },
+                },
+            },
+        },
+        500: {
+            description: 'Internal Server Error',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/ErrorResponse' },
                 },
             },
         },
@@ -85,8 +92,22 @@ registry.registerPath({
         }),
     },
     responses: {
-        200: { description: 'Guild details' },
-        404: { description: 'Guild not found' },
+        200: {
+            description: 'Guild details',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/SuccessResponse' },
+                },
+            },
+        },
+        404: {
+            description: 'Guild not found',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+            },
+        },
     },
 });
 
@@ -98,7 +119,14 @@ registry.registerPath({
     description: 'Get all global application commands.',
     tags: ['Commands'],
     responses: {
-        200: { description: 'List of global commands' },
+        200: {
+            description: 'List of global commands',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/SuccessResponse' },
+                },
+            },
+        },
     },
 });
 
@@ -112,19 +140,28 @@ registry.registerPath({
         body: {
             content: {
                 'application/json': {
-                    schema: z.object({
-                        name: z.string().min(1).max(32),
-                        description: z.string().min(1).max(100),
-                        type: z.number().optional(),
-                        options: z.array(z.unknown()).optional(),
-                    }),
+                    schema: { $ref: '#/components/schemas/CreateApplicationCommand' },
                 },
             },
         },
     },
     responses: {
-        201: { description: 'Command created' },
-        400: { description: 'Validation error' },
+        201: {
+            description: 'Command created',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/SuccessResponse' },
+                },
+            },
+        },
+        400: {
+            description: 'Validation error',
+            content: {
+                'application/json': {
+                    schema: { $ref: '#/components/schemas/ErrorResponse' },
+                },
+            },
+        },
     },
 });
 

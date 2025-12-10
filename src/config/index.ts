@@ -12,7 +12,7 @@ const apiKeySchema = z.object({
     createdAt: z.coerce.date().optional(),
 });
 
-const configSchema = z.object({
+export const configSchema = z.object({
     discord: z.object({
         token: z.string().min(1, 'Discord token is required'),
     }),

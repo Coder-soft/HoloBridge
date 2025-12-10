@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { client } from '../../discord/client.js';
+
 import { ApiError } from '../middleware/errorHandler.js';
 
 const router = Router();
