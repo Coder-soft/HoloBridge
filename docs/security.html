@@ -18,6 +18,7 @@
                 <a href="getting-started.html">Getting Started</a>
                 <a href="api-reference.html">API Reference</a>
                 <a href="websocket.html">WebSocket</a>
+                <a href="plugins.html">Plugins</a>
                 <a href="security.html" class="active">Security</a>
                 <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
             </nav>
@@ -27,7 +28,8 @@
     <main>
         <div class="container">
             <h1>Security & API Scopes</h1>
-            <p>HoloBridge provides granular access control through API scopes, allowing you to create API keys with limited permissions.</p>
+            <p>HoloBridge provides granular access control through API scopes, allowing you to create API keys with
+                limited permissions.</p>
 
             <h2>API Key Configuration</h2>
 
@@ -37,7 +39,8 @@
             <p>This key has <code>admin</code> scope (full access).</p>
 
             <h3>Multiple Keys with Scopes</h3>
-            <p>For production, define multiple keys with specific permissions using the <code>API_KEYS</code> environment variable:</p>
+            <p>For production, define multiple keys with specific permissions using the <code>API_KEYS</code>
+                environment variable:</p>
             <pre><code>API_KEYS=[
   {"id":"dashboard","name":"Web Dashboard","key":"dash_xxx","scopes":["read:guilds","read:members"]},
   {"id":"bot","name":"Chat Bot","key":"bot_xxx","scopes":["read:messages","write:messages"]},
