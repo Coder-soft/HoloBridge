@@ -586,7 +586,7 @@ export function serializeInteraction(interaction: Interaction): SerializedIntera
         channelId: interaction.channelId,
         user: serializeUser(interaction.user),
         member: interaction.member && 'id' in interaction.member
-            ? serializeMember(interaction.member as GuildMember)
+            ? serializeMember(interaction.member)
             : null,
         token: interaction.token,
         applicationId: interaction.applicationId,

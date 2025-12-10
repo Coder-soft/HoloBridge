@@ -1,6 +1,6 @@
 import {
     joinVoiceChannel,
-    leaveVoiceChannel as discordLeaveVoiceChannel,
+
     createAudioPlayer,
     createAudioResource,
     VoiceConnectionStatus,
@@ -32,7 +32,7 @@ export async function joinChannel(guildId: string, channelId: string): Promise<v
     joinVoiceChannel({
         channelId: channel.id,
         guildId: guild.id,
-        adapterCreator: guild.voiceAdapterCreator,
+        adapterCreator: guild.voiceAdapterCreator as any,
     });
 }
 

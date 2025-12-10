@@ -52,8 +52,8 @@ export async function handleInteractionCreate(
         const fields: Record<string, string> = {};
 
         // Iterate rows to find custom IDs, then fetch values safely
-        interaction.fields.fields.forEach((actionRow) => {
-            actionRow.components.forEach((component) => {
+        interaction.fields.fields.forEach((actionRow: any) => {
+            actionRow.components.forEach((component: any) => {
                 try {
                     const value = interaction.fields.getTextInputValue(component.customId);
                     fields[component.customId] = value;

@@ -10,7 +10,7 @@ export class RoleService {
      */
     async getRoles(guildId: string): Promise<SerializedRole[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         await guild.roles.fetch();
         return guild.roles.cache
@@ -23,11 +23,11 @@ export class RoleService {
      */
     async getRole(guildId: string, roleId: string): Promise<SerializedRole | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return null;
+            if (!role) {return null;}
             return serializeRole(role);
         } catch {
             return null;
@@ -39,7 +39,7 @@ export class RoleService {
      */
     async createRole(guildId: string, input: CreateRoleInput): Promise<SerializedRole | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const role = await guild.roles.create({
@@ -63,11 +63,11 @@ export class RoleService {
      */
     async editRole(guildId: string, roleId: string, input: EditRoleInput): Promise<SerializedRole | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return null;
+            if (!role) {return null;}
 
             const edited = await role.edit({
                 name: input.name,
@@ -90,11 +90,11 @@ export class RoleService {
      */
     async deleteRole(guildId: string, roleId: string, reason?: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return false;
+            if (!role) {return false;}
 
             await role.delete(reason);
             return true;
@@ -108,11 +108,11 @@ export class RoleService {
      */
     async setRolePosition(guildId: string, roleId: string, position: number): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return false;
+            if (!role) {return false;}
 
             await role.setPosition(position);
             return true;
@@ -126,11 +126,11 @@ export class RoleService {
      */
     async getRoleMembers(guildId: string, roleId: string): Promise<string[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return [];
+            if (!role) {return [];}
 
             return role.members.map((m) => m.id);
         } catch {
@@ -143,11 +143,11 @@ export class RoleService {
      */
     async setRolePermissions(guildId: string, roleId: string, permissions: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const role = await guild.roles.fetch(roleId);
-            if (!role) return false;
+            if (!role) {return false;}
 
             await role.setPermissions(new PermissionsBitField(BigInt(permissions)));
             return true;
@@ -161,7 +161,7 @@ export class RoleService {
      */
     async getRoleByName(guildId: string, name: string): Promise<SerializedRole | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         await guild.roles.fetch();
         const role = guild.roles.cache.find((r) => r.name.toLowerCase() === name.toLowerCase());

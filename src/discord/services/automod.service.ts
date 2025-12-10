@@ -9,7 +9,7 @@ export class AutoModService {
      */
     async getAutoModRules(guildId: string): Promise<SerializedAutoModRule[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const rules = await guild.autoModerationRules.fetch();
@@ -25,7 +25,7 @@ export class AutoModService {
      */
     async getAutoModRule(guildId: string, ruleId: string): Promise<SerializedAutoModRule | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const rule = await guild.autoModerationRules.fetch(ruleId);
@@ -40,7 +40,7 @@ export class AutoModService {
      */
     async createAutoModRule(guildId: string, data: AutoModerationRuleCreateOptions): Promise<SerializedAutoModRule | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const rule = await guild.autoModerationRules.create(data);
@@ -56,7 +56,7 @@ export class AutoModService {
      */
     async editAutoModRule(guildId: string, ruleId: string, data: AutoModerationRuleEditOptions): Promise<SerializedAutoModRule | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const rule = await guild.autoModerationRules.fetch(ruleId);
@@ -72,7 +72,7 @@ export class AutoModService {
      */
     async deleteAutoModRule(guildId: string, ruleId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const rule = await guild.autoModerationRules.fetch(ruleId);

@@ -77,7 +77,7 @@ function loadConfig(): Config {
  * Parse API_KEYS environment variable (JSON array) with schema validation
  */
 function parseApiKeys(envVar: string | undefined): z.infer<typeof apiKeySchema>[] {
-    if (!envVar) return [];
+    if (!envVar) {return [];}
 
     // Parse JSON
     let parsed: unknown;

@@ -9,7 +9,7 @@ export class MemberService {
      */
     async getMembers(guildId: string, limit = 1000): Promise<SerializedMember[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const members = await guild.members.fetch({ limit });
         return members.map(serializeMember);
@@ -20,7 +20,7 @@ export class MemberService {
      */
     async getMember(guildId: string, userId: string): Promise<SerializedMember | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -35,7 +35,7 @@ export class MemberService {
      */
     async searchMembers(guildId: string, query: string, limit = 20): Promise<SerializedMember[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const members = await guild.members.search({ query, limit });
         return members.map(serializeMember);
@@ -46,7 +46,7 @@ export class MemberService {
      */
     async kickMember(guildId: string, userId: string, reason?: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             await guild.members.kick(userId, reason);
@@ -61,7 +61,7 @@ export class MemberService {
      */
     async banMember(guildId: string, userId: string, options?: BanMemberInput): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             await guild.members.ban(userId, {
@@ -79,7 +79,7 @@ export class MemberService {
      */
     async unbanMember(guildId: string, userId: string, reason?: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             await guild.members.unban(userId, reason);
@@ -94,7 +94,7 @@ export class MemberService {
      */
     async setNickname(guildId: string, userId: string, input: SetNicknameInput): Promise<SerializedMember | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -110,7 +110,7 @@ export class MemberService {
      */
     async modifyRoles(guildId: string, userId: string, input: ModifyRolesInput): Promise<SerializedMember | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -136,7 +136,7 @@ export class MemberService {
      */
     async addRole(guildId: string, userId: string, roleId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -152,7 +152,7 @@ export class MemberService {
      */
     async removeRole(guildId: string, userId: string, roleId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -168,7 +168,7 @@ export class MemberService {
      */
     async timeoutMember(guildId: string, userId: string, durationMs: number, reason?: string): Promise<SerializedMember | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const member = await guild.members.fetch(userId);
@@ -184,7 +184,7 @@ export class MemberService {
      */
     async removeTimeout(guildId: string, userId: string, reason?: string): Promise<SerializedMember | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const member = await guild.members.fetch(userId);

@@ -10,7 +10,7 @@ export class StageInstanceService {
      */
     async getStageInstance(channelId: string): Promise<SerializedStageInstance | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !channel.isVoiceBased() || !channel.guild) return null;
+        if (!channel || !channel.isVoiceBased() || !channel.guild) {return null;}
 
         try {
             const stageInstance = await channel.guild.stageInstances.fetch(channelId);
@@ -25,10 +25,10 @@ export class StageInstanceService {
      */
     async createStageInstance(channelId: string, topic: string, options?: Omit<StageInstanceCreateOptions, 'channelId' | 'topic'>): Promise<SerializedStageInstance | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !channel.isVoiceBased() || !channel.guild) return null;
+        if (!channel || !channel.isVoiceBased() || !channel.guild) {return null;}
 
         // Only stage channels can have stage instances
-        if (channel.type !== ChannelType.GuildStageVoice) return null;
+        if (channel.type !== ChannelType.GuildStageVoice) {return null;}
 
         try {
             const stageInstance = await channel.guild.stageInstances.create(channel, {
@@ -47,11 +47,11 @@ export class StageInstanceService {
      */
     async editStageInstance(channelId: string, data: StageInstanceEditOptions): Promise<SerializedStageInstance | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !channel.isVoiceBased() || !channel.guild) return null;
+        if (!channel || !channel.isVoiceBased() || !channel.guild) {return null;}
 
         try {
             const stageInstance = await channel.guild.stageInstances.fetch(channelId);
-            if (!stageInstance) return null;
+            if (!stageInstance) {return null;}
 
             const updated = await stageInstance.edit(data);
             return serializeStageInstance(updated);
@@ -65,11 +65,11 @@ export class StageInstanceService {
      */
     async deleteStageInstance(channelId: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !channel.isVoiceBased() || !channel.guild) return false;
+        if (!channel || !channel.isVoiceBased() || !channel.guild) {return false;}
 
         try {
             const stageInstance = await channel.guild.stageInstances.fetch(channelId);
-            if (!stageInstance) return false;
+            if (!stageInstance) {return false;}
 
             await stageInstance.delete();
             return true;

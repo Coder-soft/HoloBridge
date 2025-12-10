@@ -49,7 +49,7 @@ import { pluginManager } from '../../plugins/manager.js';
  * Broadcast a Discord event to subscribed clients
  */
 function broadcastEvent(payload: DiscordEventPayload): void {
-    if (!io) return;
+    if (!io) {return;}
 
     const guildId = payload.guildId;
     if (guildId) {
@@ -83,7 +83,7 @@ export function registerDiscordEvents(): void {
     });
 
     discordClient.on('messageUpdate', (oldMessage, newMessage) => {
-        if (!newMessage.author || newMessage.partial) return; // Partial message, skip
+        if (!newMessage.author || newMessage.partial) {return;} // Partial message, skip
 
         broadcastEvent({
             event: 'messageUpdate',
@@ -189,7 +189,7 @@ export function registerDiscordEvents(): void {
     discordClient.on('messagePollVoteAdd', (pollAnswer, userId) => {
         const poll = pollAnswer.poll;
         const message = poll?.message;
-        if (!message) return; // Skip if message is not available
+        if (!message) {return;} // Skip if message is not available
 
         broadcastEvent({
             event: 'messagePollVoteAdd',
@@ -207,7 +207,7 @@ export function registerDiscordEvents(): void {
     discordClient.on('messagePollVoteRemove', (pollAnswer, userId) => {
         const poll = pollAnswer.poll;
         const message = poll?.message;
-        if (!message) return; // Skip if message is not available
+        if (!message) {return;} // Skip if message is not available
 
         broadcastEvent({
             event: 'messagePollVoteRemove',
@@ -255,7 +255,7 @@ export function registerDiscordEvents(): void {
     });
 
     discordClient.on('presenceUpdate', (oldPresence, newPresence) => {
-        if (!newPresence) return;
+        if (!newPresence) {return;}
 
         broadcastEvent({
             event: 'presenceUpdate',
@@ -270,7 +270,7 @@ export function registerDiscordEvents(): void {
     discordClient.on('userUpdate', (oldUser, newUser) => {
         // oldUser may be partial, so we only serialize if not partial
         // Type assertion is safe here because we've checked partial === false
-        const oldSerialized = oldUser.partial ? null : serializeUser(oldUser as User);
+        const oldSerialized = oldUser.partial ? null : serializeUser(oldUser);
         broadcastEvent({
             event: 'userUpdate',
             guildId: null,
@@ -323,7 +323,7 @@ export function registerDiscordEvents(): void {
     });
 
     discordClient.on('webhookUpdate', (channel) => {
-        if (!('guildId' in channel) || !channel.guildId) return;
+        if (!('guildId' in channel) || !channel.guildId) {return;}
 
         broadcastEvent({
             event: 'webhookUpdate',
@@ -610,14 +610,14 @@ export function registerDiscordEvents(): void {
         // oldEvent may be partial
         // Type assertions are safe here because we've checked partial === false
         const oldSerialized = oldEvent && !oldEvent.partial
-            ? serializeScheduledEvent(oldEvent as GuildScheduledEvent)
+            ? serializeScheduledEvent(oldEvent)
             : null;
         broadcastEvent({
             event: 'guildScheduledEventUpdate',
             guildId: newEvent.guildId,
             data: {
                 old: oldSerialized,
-                new: serializeScheduledEvent(newEvent as GuildScheduledEvent),
+                new: serializeScheduledEvent(newEvent),
             },
         });
     });
@@ -641,7 +641,7 @@ export function registerDiscordEvents(): void {
         broadcastEvent({
             event: 'guildScheduledEventDelete',
             guildId: event.guildId,
-            data: serializeScheduledEvent(event as GuildScheduledEvent),
+            data: serializeScheduledEvent(event),
         });
     });
 
@@ -724,7 +724,7 @@ export function registerDiscordEvents(): void {
     // ========== INTERACTION EVENT ==========
 
     discordClient.on('interactionCreate', (interaction) => {
-        if (!io) return;
+        if (!io) {return;}
         // Use specialized handler for full interaction support
         handleInteractionCreate(interaction, io).catch((error) => {
             console.error('❌ Error handling interaction:', error);

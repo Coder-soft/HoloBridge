@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/:guildId', async (req, res) => {
     const { guildId } = req.params;
-    const guild = await guildService.getGuild(guildId as string);
+    const guild = await guildService.getGuild(guildId);
 
     if (!guild) {
         res.status(404).json({ success: false, error: 'Guild not found', code: 'GUILD_NOT_FOUND' });
@@ -38,7 +38,7 @@ router.get('/:guildId', async (req, res) => {
  */
 router.get('/:guildId/channels', async (req, res) => {
     const { guildId } = req.params;
-    const channels = await guildService.getGuildChannels(guildId as string);
+    const channels = await guildService.getGuildChannels(guildId);
     const response: ApiResponse<SerializedChannel[]> = { success: true, data: channels };
     res.json(response);
 });
@@ -49,7 +49,7 @@ router.get('/:guildId/channels', async (req, res) => {
  */
 router.get('/:guildId/roles', async (req, res) => {
     const { guildId } = req.params;
-    const roles = await guildService.getGuildRoles(guildId as string);
+    const roles = await guildService.getGuildRoles(guildId);
     const response: ApiResponse<SerializedRole[]> = { success: true, data: roles };
     res.json(response);
 });
@@ -60,7 +60,7 @@ router.get('/:guildId/roles', async (req, res) => {
  */
 router.get('/:guildId/emojis', async (req, res) => {
     const { guildId } = req.params;
-    const emojis = await guildService.getGuildEmojis(guildId as string);
+    const emojis = await guildService.getGuildEmojis(guildId);
     res.json({ success: true, data: emojis });
 });
 
@@ -70,7 +70,7 @@ router.get('/:guildId/emojis', async (req, res) => {
  */
 router.get('/:guildId/bans', async (req, res) => {
     const { guildId } = req.params;
-    const bans = await guildService.getGuildBans(guildId as string);
+    const bans = await guildService.getGuildBans(guildId);
     res.json({ success: true, data: bans });
 });
 
@@ -80,7 +80,7 @@ router.get('/:guildId/bans', async (req, res) => {
  */
 router.get('/:guildId/invites', async (req, res) => {
     const { guildId } = req.params;
-    const invites = await guildService.getGuildInvites(guildId as string);
+    const invites = await guildService.getGuildInvites(guildId);
     res.json({ success: true, data: invites });
 });
 

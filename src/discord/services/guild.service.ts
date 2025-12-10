@@ -15,7 +15,7 @@ export class GuildService {
      */
     async getGuild(guildId: string): Promise<SerializedGuild | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
         return serializeGuild(guild);
     }
 
@@ -36,7 +36,7 @@ export class GuildService {
      */
     async getGuildChannels(guildId: string): Promise<SerializedChannel[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         await guild.channels.fetch();
         return guild.channels.cache.map(serializeChannel);
@@ -47,7 +47,7 @@ export class GuildService {
      */
     async getGuildRoles(guildId: string): Promise<SerializedRole[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         await guild.roles.fetch();
         return guild.roles.cache.map(serializeRole).sort((a, b) => b.position - a.position);
@@ -58,7 +58,7 @@ export class GuildService {
      */
     async getGuildEmojis(guildId: string): Promise<Array<{ id: string; name: string | null; animated: boolean; url: string }>> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         await guild.emojis.fetch();
         return guild.emojis.cache.map((e) => ({
@@ -82,7 +82,7 @@ export class GuildService {
      */
     async getGuildBans(guildId: string): Promise<Array<{ reason: string | null; userId: string; username: string }>> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const bans = await guild.bans.fetch();
         return bans.map((ban) => ({
@@ -106,7 +106,7 @@ export class GuildService {
         createdAt: string;
     }>> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const invites = await guild.invites.fetch();
         return invites.map((invite) => ({

@@ -15,14 +15,19 @@ const PlayAudioSchema = z.object({
     url: z.string().url(),
 });
 
+// Helper type for guild params
+interface GuildParams {
+    guildId: string;
+}
+
 /**
  * Join a voice channel
  * POST /api/guilds/:guildId/voice/join
  */
-router.post('/join', async (req, res, next) => {
+router.post('/join', async (req: any, res, next) => {
     try {
         const { guildId } = req.params;
-        if (!guildId) throw ApiError.badRequest('Guild ID required');
+        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
 
         const { channelId } = JoinChannelSchema.parse(req.body);
 
@@ -38,10 +43,10 @@ router.post('/join', async (req, res, next) => {
  * Leave a voice channel
  * POST /api/guilds/:guildId/voice/leave
  */
-router.post('/leave', async (req, res, next) => {
+router.post('/leave', async (req: any, res, next) => {
     try {
         const { guildId } = req.params;
-        if (!guildId) throw ApiError.badRequest('Guild ID required');
+        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
 
         await voiceService.leaveChannel(guildId);
 
@@ -55,10 +60,10 @@ router.post('/leave', async (req, res, next) => {
  * Play audio
  * POST /api/guilds/:guildId/voice/play
  */
-router.post('/play', async (req, res, next) => {
+router.post('/play', async (req: any, res, next) => {
     try {
         const { guildId } = req.params;
-        if (!guildId) throw ApiError.badRequest('Guild ID required');
+        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
 
         const { url } = PlayAudioSchema.parse(req.body);
 
@@ -74,10 +79,10 @@ router.post('/play', async (req, res, next) => {
  * Get voice status
  * GET /api/guilds/:guildId/voice
  */
-router.get('/', (req, res, next) => {
+router.get('/', (req: any, res, next) => {
     try {
         const { guildId } = req.params;
-        if (!guildId) throw ApiError.badRequest('Guild ID required');
+        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
 
         const status = voiceService.getVoiceStatus(guildId);
 

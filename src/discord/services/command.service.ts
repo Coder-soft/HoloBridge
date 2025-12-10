@@ -8,8 +8,8 @@ import type { ApplicationCommandDataResolvable, PermissionResolvable } from 'dis
  * Convert a permissions string to a PermissionResolvable (bigint) or null
  */
 function parsePermissions(permissions: string | null | undefined): PermissionResolvable | null | undefined {
-    if (permissions === null) return null;
-    if (permissions === undefined) return undefined;
+    if (permissions === null) {return null;}
+    if (permissions === undefined) {return undefined;}
     try {
         return BigInt(permissions);
     } catch {
@@ -27,7 +27,7 @@ export class CommandService {
     async getGlobalCommands(): Promise<SerializedApplicationCommand[]> {
         try {
             const commands = await discordClient.application?.commands.fetch();
-            if (!commands) return [];
+            if (!commands) {return [];}
             return Array.from(commands.values()).map(serializeApplicationCommand);
         } catch (error) {
             console.error('Failed to fetch global commands:', error);
@@ -41,7 +41,7 @@ export class CommandService {
     async getGlobalCommand(commandId: string): Promise<SerializedApplicationCommand | null> {
         try {
             const command = await discordClient.application?.commands.fetch(commandId);
-            if (!command) return null;
+            if (!command) {return null;}
             return serializeApplicationCommand(command);
         } catch {
             return null;
@@ -65,7 +65,7 @@ export class CommandService {
             };
 
             const command = await discordClient.application?.commands.create(commandData);
-            if (!command) return null;
+            if (!command) {return null;}
             return serializeApplicationCommand(command);
         } catch (error) {
             console.error('Failed to create global command:', error);
@@ -87,7 +87,7 @@ export class CommandService {
                 nameLocalizations: input.name_localizations ?? undefined,
                 descriptionLocalizations: input.description_localizations ?? undefined,
             });
-            if (!command) return null;
+            if (!command) {return null;}
             return serializeApplicationCommand(command);
         } catch (error) {
             console.error('Failed to edit global command:', error);
@@ -114,7 +114,7 @@ export class CommandService {
     async getGuildCommands(guildId: string): Promise<SerializedApplicationCommand[]> {
         try {
             const guild = discordClient.guilds.cache.get(guildId);
-            if (!guild) return [];
+            if (!guild) {return [];}
 
             const commands = await guild.commands.fetch();
             return Array.from(commands.values()).map(serializeApplicationCommand);
@@ -130,10 +130,10 @@ export class CommandService {
     async getGuildCommand(guildId: string, commandId: string): Promise<SerializedApplicationCommand | null> {
         try {
             const guild = discordClient.guilds.cache.get(guildId);
-            if (!guild) return null;
+            if (!guild) {return null;}
 
             const command = await guild.commands.fetch(commandId);
-            if (!command) return null;
+            if (!command) {return null;}
             return serializeApplicationCommand(command);
         } catch {
             return null;
@@ -146,7 +146,7 @@ export class CommandService {
     async createGuildCommand(guildId: string, input: CreateApplicationCommandInput): Promise<SerializedApplicationCommand | null> {
         try {
             const guild = discordClient.guilds.cache.get(guildId);
-            if (!guild) return null;
+            if (!guild) {return null;}
 
             const commandData: ApplicationCommandDataResolvable = {
                 name: input.name,
@@ -173,7 +173,7 @@ export class CommandService {
     async editGuildCommand(guildId: string, commandId: string, input: EditApplicationCommandInput): Promise<SerializedApplicationCommand | null> {
         try {
             const guild = discordClient.guilds.cache.get(guildId);
-            if (!guild) return null;
+            if (!guild) {return null;}
 
             const command = await guild.commands.edit(commandId, {
                 name: input.name,
@@ -197,7 +197,7 @@ export class CommandService {
     async deleteGuildCommand(guildId: string, commandId: string): Promise<boolean> {
         try {
             const guild = discordClient.guilds.cache.get(guildId);
-            if (!guild) return false;
+            if (!guild) {return false;}
 
             await guild.commands.delete(commandId);
             return true;

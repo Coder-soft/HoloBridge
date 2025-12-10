@@ -9,7 +9,7 @@ export class ScheduledEventService {
      */
     async getGuildEvents(guildId: string): Promise<SerializedScheduledEvent[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const events = await guild.scheduledEvents.fetch();
@@ -25,7 +25,7 @@ export class ScheduledEventService {
      */
     async getEvent(guildId: string, eventId: string): Promise<SerializedScheduledEvent | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const event = await guild.scheduledEvents.fetch(eventId);
@@ -40,7 +40,7 @@ export class ScheduledEventService {
      */
     async createEvent(guildId: string, data: GuildScheduledEventCreateOptions): Promise<SerializedScheduledEvent | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const event = await guild.scheduledEvents.create(data);
@@ -56,7 +56,7 @@ export class ScheduledEventService {
      */
     async editEvent(guildId: string, eventId: string, data: GuildScheduledEventEditOptions<GuildScheduledEventStatus, GuildScheduledEventStatus.Active | GuildScheduledEventStatus.Completed | GuildScheduledEventStatus.Canceled>): Promise<SerializedScheduledEvent | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const event = await guild.scheduledEvents.fetch(eventId);
@@ -72,7 +72,7 @@ export class ScheduledEventService {
      */
     async deleteEvent(guildId: string, eventId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const event = await guild.scheduledEvents.fetch(eventId);
@@ -88,7 +88,7 @@ export class ScheduledEventService {
      */
     async getEventUsers(guildId: string, eventId: string): Promise<SerializedUser[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const event = await guild.scheduledEvents.fetch(eventId);
