@@ -10,3 +10,5 @@ export { stageInstanceService } from './stage-instance.service.js';
 export { inviteService } from './invite.service.js';
 export { webhookService } from './webhook.service.js';
 export { emojiService } from './emoji.service.js';
+export { commandService } from './command.service.js';
+

@@ -674,3 +674,91 @@ export function serializeWebhook(webhook: Webhook): SerializedWebhook {
         createdAt: webhook.createdAt.toISOString(),
     };
 }
+
+// ============================================================================
+// Application Command Serializers
+// ============================================================================
+
+import type { ApplicationCommand, ApplicationCommandOption } from 'discord.js';
+import { ApplicationCommandType, ApplicationCommandOptionType } from 'discord.js';
+import type {
+    SerializedApplicationCommand,
+    SerializedApplicationCommandOption,
+    SerializedApplicationCommandOptionChoice,
+} from '../types/discord.types.js';
+
+const applicationCommandTypeNames: Record<ApplicationCommandType, string> = {
+    [ApplicationCommandType.ChatInput]: 'chat_input',
+    [ApplicationCommandType.User]: 'user',
+    [ApplicationCommandType.Message]: 'message',
+    [ApplicationCommandType.PrimaryEntryPoint]: 'primary_entry_point',
+};
+
+const applicationCommandOptionTypeNames: Record<ApplicationCommandOptionType, string> = {
+    [ApplicationCommandOptionType.Subcommand]: 'subcommand',
+    [ApplicationCommandOptionType.SubcommandGroup]: 'subcommand_group',
+    [ApplicationCommandOptionType.String]: 'string',
+    [ApplicationCommandOptionType.Integer]: 'integer',
+    [ApplicationCommandOptionType.Boolean]: 'boolean',
+    [ApplicationCommandOptionType.User]: 'user',
+    [ApplicationCommandOptionType.Channel]: 'channel',
+    [ApplicationCommandOptionType.Role]: 'role',
+    [ApplicationCommandOptionType.Mentionable]: 'mentionable',
+    [ApplicationCommandOptionType.Number]: 'number',
+    [ApplicationCommandOptionType.Attachment]: 'attachment',
+};
+
+export function serializeApplicationCommandOption(option: ApplicationCommandOption): SerializedApplicationCommandOption {
+    const choices: SerializedApplicationCommandOptionChoice[] | null =
+        'choices' in option && option.choices
+            ? option.choices.map((c) => ({
+                name: c.name,
+                nameLocalizations: (c.nameLocalizations as Record<string, string | null>) ?? null,
+                value: c.value,
+            }))
+            : null;
+
+    const nestedOptions: SerializedApplicationCommandOption[] | null =
+        'options' in option && option.options
+            ? option.options.map(serializeApplicationCommandOption)
+            : null;
+
+    return {
+        name: option.name,
+        nameLocalizations: (option.nameLocalizations as Record<string, string | null>) ?? null,
+        description: option.description,
+        descriptionLocalizations: (option.descriptionLocalizations as Record<string, string | null>) ?? null,
+        type: option.type,
+        typeName: applicationCommandOptionTypeNames[option.type] ?? 'unknown',
+        required: 'required' in option ? (option.required ?? false) : false,
+        choices,
+        options: nestedOptions,
+        channelTypes: 'channelTypes' in option && option.channelTypes ? [...option.channelTypes] : null,
+        minValue: 'minValue' in option ? (option.minValue ?? null) : null,
+        maxValue: 'maxValue' in option ? (option.maxValue ?? null) : null,
+        minLength: 'minLength' in option ? (option.minLength ?? null) : null,
+        maxLength: 'maxLength' in option ? (option.maxLength ?? null) : null,
+        autocomplete: 'autocomplete' in option ? (option.autocomplete ?? false) : false,
+    };
+}
+
+export function serializeApplicationCommand(command: ApplicationCommand): SerializedApplicationCommand {
+    return {
+        id: command.id,
+        applicationId: command.applicationId,
+        guildId: command.guildId,
+        name: command.name,
+        nameLocalizations: (command.nameLocalizations as Record<string, string | null>) ?? null,
+        description: command.description,
+        descriptionLocalizations: (command.descriptionLocalizations as Record<string, string | null>) ?? null,
+        type: command.type,
+        typeName: applicationCommandTypeNames[command.type] ?? 'unknown',
+        options: command.options.map(serializeApplicationCommandOption),
+        defaultMemberPermissions: command.defaultMemberPermissions?.bitfield.toString() ?? null,
+        dmPermission: command.dmPermission ?? true,
+        nsfw: command.nsfw ?? false,
+        version: command.version,
+        createdAt: command.createdAt.toISOString(),
+    };
+}
+

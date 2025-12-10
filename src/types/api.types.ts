@@ -150,3 +150,62 @@ export type ModifyRolesInput = z.infer<typeof ModifyRolesSchema>;
 export type SetNicknameInput = z.infer<typeof SetNicknameSchema>;
 export type CreateThreadInput = z.infer<typeof CreateThreadSchema>;
 export type GetMessagesInput = z.infer<typeof GetMessagesSchema>;
+
+// ============================================================================
+// Application Command Schemas
+// ============================================================================
+
+// Command option choice schema
+const ApplicationCommandOptionChoiceSchema = z.object({
+    name: z.string().min(1).max(100),
+    name_localizations: z.record(z.string()).optional().nullable(),
+    value: z.union([z.string().max(100), z.number()]),
+});
+
+// Recursive schema for command options (supports subcommands/groups)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ApplicationCommandOptionSchema: z.ZodType<any> = z.lazy(() =>
+    z.object({
+        name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u),
+        name_localizations: z.record(z.string()).optional().nullable(),
+        description: z.string().min(1).max(100),
+        description_localizations: z.record(z.string()).optional().nullable(),
+        type: z.number().int().min(1).max(11),
+        required: z.boolean().optional(),
+        choices: z.array(ApplicationCommandOptionChoiceSchema).max(25).optional(),
+        options: z.array(ApplicationCommandOptionSchema).max(25).optional(),
+        channel_types: z.array(z.number().int()).optional(),
+        min_value: z.number().optional(),
+        max_value: z.number().optional(),
+        min_length: z.number().int().min(0).max(6000).optional(),
+        max_length: z.number().int().min(1).max(6000).optional(),
+        autocomplete: z.boolean().optional(),
+    })
+);
+
+export const CreateApplicationCommandSchema = z.object({
+    name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u),
+    name_localizations: z.record(z.string()).optional().nullable(),
+    description: z.string().min(1).max(100),
+    description_localizations: z.record(z.string()).optional().nullable(),
+    type: z.number().int().min(1).max(3).optional().default(1), // 1=CHAT_INPUT, 2=USER, 3=MESSAGE
+    options: z.array(ApplicationCommandOptionSchema).max(25).optional(),
+    default_member_permissions: z.string().optional().nullable(),
+    dm_permission: z.boolean().optional(),
+    nsfw: z.boolean().optional(),
+});
+
+export const EditApplicationCommandSchema = z.object({
+    name: z.string().min(1).max(32).regex(/^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$/u).optional(),
+    name_localizations: z.record(z.string()).optional().nullable(),
+    description: z.string().min(1).max(100).optional(),
+    description_localizations: z.record(z.string()).optional().nullable(),
+    options: z.array(ApplicationCommandOptionSchema).max(25).optional(),
+    default_member_permissions: z.string().optional().nullable(),
+    dm_permission: z.boolean().optional(),
+    nsfw: z.boolean().optional(),
+});
+
+export type CreateApplicationCommandInput = z.infer<typeof CreateApplicationCommandSchema>;
+export type EditApplicationCommandInput = z.infer<typeof EditApplicationCommandSchema>;
+

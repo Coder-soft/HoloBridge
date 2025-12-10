@@ -27,6 +27,8 @@ import stageInstancesRouter from './routes/stage-instances.js';
 import invitesRouter from './routes/invites.js';
 import webhooksRouter from './routes/webhooks.js';
 import emojisRouter from './routes/emojis.js';
+import commandsRouter from './routes/commands.js';
+import guildCommandsRouter from './routes/guild-commands.js';
 import { pluginManager } from '../plugins/manager.js';
 import type { Application } from 'express';
 import type { Server as HttpServer } from 'http';
@@ -94,6 +96,8 @@ export function createApiServer(): ApiServerInstance {
     app.use('/api/stage-instances', stageInstancesRouter);
     app.use('/api/invites', invitesRouter);
     app.use('/api/webhooks', webhooksRouter);
+    app.use('/api/commands', commandsRouter);
+    app.use('/api/guilds/:guildId/commands', guildCommandsRouter);
 
     // Mount plugin routes (plugins inherit auth middleware from /api)
     app.use('/api/plugins', pluginManager.getPluginRouter());

@@ -466,3 +466,49 @@ export interface SerializedWebhook {
     url: string | null;
     createdAt: string;
 }
+
+// ============================================================================
+// Application Command Types
+// ============================================================================
+
+export interface SerializedApplicationCommandOptionChoice {
+    name: string;
+    nameLocalizations: Record<string, string | null> | null;
+    value: string | number;
+}
+
+export interface SerializedApplicationCommandOption {
+    name: string;
+    nameLocalizations: Record<string, string | null> | null;
+    description: string;
+    descriptionLocalizations: Record<string, string | null> | null;
+    type: number;
+    typeName: string;
+    required: boolean;
+    choices: SerializedApplicationCommandOptionChoice[] | null;
+    options: SerializedApplicationCommandOption[] | null;
+    channelTypes: number[] | null;
+    minValue: number | null;
+    maxValue: number | null;
+    minLength: number | null;
+    maxLength: number | null;
+    autocomplete: boolean;
+}
+
+export interface SerializedApplicationCommand {
+    id: string;
+    applicationId: string;
+    guildId: string | null;
+    name: string;
+    nameLocalizations: Record<string, string | null> | null;
+    description: string;
+    descriptionLocalizations: Record<string, string | null> | null;
+    type: number;
+    typeName: string;
+    options: SerializedApplicationCommandOption[];
+    defaultMemberPermissions: string | null;
+    dmPermission: boolean;
+    nsfw: boolean;
+    version: string;
+    createdAt: string;
+}

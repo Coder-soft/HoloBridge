@@ -74,6 +74,18 @@ Authentication: `X-API-Key` header required
 - GET /api/guilds/:id/roles/:roleId/members - Get role members
 - PATCH /api/guilds/:id/roles/:roleId/permissions - Set permissions
 
+### Application Commands (Slash Commands)
+- GET /api/commands - List global commands
+- GET /api/commands/:commandId - Get global command
+- POST /api/commands - Create global command
+- PATCH /api/commands/:commandId - Edit global command
+- DELETE /api/commands/:commandId - Delete global command
+- GET /api/guilds/:id/commands - List guild commands
+- GET /api/guilds/:id/commands/:commandId - Get guild command
+- POST /api/guilds/:id/commands - Create guild command
+- PATCH /api/guilds/:id/commands/:commandId - Edit guild command
+- DELETE /api/guilds/:id/commands/:commandId - Delete guild command
+
 ## WebSocket Events
 
 Connect via Socket.IO with authentication:
