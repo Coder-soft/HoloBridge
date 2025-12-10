@@ -1,10 +1,14 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import swaggerUi from 'swagger-ui-express';
 import { config } from '../config/index.js';
-import { authMiddleware, errorHandler, notFoundHandler } from './middleware/auth.js';
+import { authMiddleware } from './middleware/auth.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimiter } from './middleware/rateLimit.js';
+import { openApiDocument } from './openapi.js';
 import { setupWebSocketEvents } from './websocket/events.js';
 import { setSocketServer } from '../discord/events/index.js';
 import type {
@@ -29,6 +33,8 @@ import webhooksRouter from './routes/webhooks.js';
 import emojisRouter from './routes/emojis.js';
 import commandsRouter from './routes/commands.js';
 import guildCommandsRouter from './routes/guild-commands.js';
+import interactionsRouter from './routes/interactions.js';
+import voiceRouter from './routes/voice.js';
 import { pluginManager } from '../plugins/manager.js';
 import type { Application } from 'express';
 import type { Server as HttpServer } from 'http';
@@ -69,11 +75,25 @@ export function createApiServer(): ApiServerInstance {
     );
 
     // Middleware
+    app.use(helmet({
+        contentSecurityPolicy: false, // Disable CSP for Swagger UI
+    }));
     app.use(cors());
     app.use(express.json());
 
+    // Swagger UI documentation (no auth required)
+    app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'HoloBridge API Documentation',
+    }));
+
     // Health check endpoint (no auth required)
-    app.get('/health', (req, res) => {
+    app.get('/health', (_req, res) => {
+        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
+    // Also support /api/health for convenience (no auth required)
+    app.get('/api/health', (_req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 
@@ -98,6 +118,9 @@ export function createApiServer(): ApiServerInstance {
     app.use('/api/webhooks', webhooksRouter);
     app.use('/api/commands', commandsRouter);
     app.use('/api/guilds/:guildId/commands', guildCommandsRouter);
+    app.use('/api/guilds/:guildId/commands', guildCommandsRouter);
+    app.use('/api/interactions', interactionsRouter);
+    app.use('/api/guilds/:guildId/voice', voiceRouter);
 
     // Mount plugin routes (plugins inherit auth middleware from /api)
     app.use('/api/plugins', pluginManager.getPluginRouter());
@@ -128,6 +151,7 @@ export function startApiServer(): Promise<void> {
         httpServer.listen(config.api.port, () => {
             console.log(`🌐 API server listening on port ${config.api.port}`);
             console.log(`   REST API: http://localhost:${config.api.port}/api`);
+            console.log(`   API Docs: http://localhost:${config.api.port}/api/docs`);
             console.log(`   Plugin API: http://localhost:${config.api.port}/api/plugins`);
             console.log(`   WebSocket: ws://localhost:${config.api.port}`);
             console.log(`   Health check: http://localhost:${config.api.port}/health`);

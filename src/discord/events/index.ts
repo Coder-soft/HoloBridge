@@ -1,6 +1,7 @@
 import type { Server as SocketIOServer } from 'socket.io';
 import type { User, GuildScheduledEvent } from 'discord.js';
 import { discordClient } from '../client.js';
+import { handleInteractionCreate } from './interaction.js';
 import {
     serializeMessage,
     serializeMember,
@@ -723,11 +724,9 @@ export function registerDiscordEvents(): void {
     // ========== INTERACTION EVENT ==========
 
     discordClient.on('interactionCreate', (interaction) => {
-        broadcastEvent({
-            event: 'interactionCreate',
-            guildId: interaction.guildId,
-            data: serializeInteraction(interaction),
-        });
+        if (!io) return;
+        // Use specialized handler for full interaction support
+        void handleInteractionCreate(interaction, io);
     });
 
     // ========== INVITE EVENTS ==========
