@@ -12,7 +12,10 @@ const JoinChannelSchema = z.object({
 
 // Schema for playing audio
 const PlayAudioSchema = z.object({
-    url: z.string().url(),
+    url: z.string().url().refine(
+        (url) => url.startsWith('https://') || url.startsWith('http://'),
+        { message: 'URL must use http or https scheme' }
+    ),
 });
 
 // Helper type for guild params
