@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import * as voiceService from '../../discord/services/voice.service.js';
 import { ApiError } from '../middleware/errorHandler.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
 const router = Router({ mergeParams: true });
 
@@ -27,72 +28,57 @@ interface GuildParams {
  * Join a voice channel
  * POST /api/guilds/:guildId/voice/join
  */
-router.post('/join', async (req: any, res, next) => {
-    try {
-        const { guildId } = req.params;
-        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
+router.post('/join', asyncHandler(async (req, res) => {
+    const { guildId } = req.params;
+    if (!guildId) { throw ApiError.badRequest('Guild ID required'); }
 
-        const { channelId } = JoinChannelSchema.parse(req.body);
+    const { channelId } = JoinChannelSchema.parse(req.body);
 
-        await voiceService.joinChannel(guildId, channelId);
+    await voiceService.joinChannel(guildId, channelId);
 
-        res.json({ success: true, message: 'Joined voice channel' });
-    } catch (error) {
-        next(error);
-    }
-});
+    res.json({ success: true, message: 'Joined voice channel' });
+}));
 
 /**
  * Leave a voice channel
  * POST /api/guilds/:guildId/voice/leave
  */
-router.post('/leave', async (req: any, res, next) => {
-    try {
-        const { guildId } = req.params;
-        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
+router.post('/leave', asyncHandler(async (req, res) => {
+    const { guildId } = req.params;
+    if (!guildId) { throw ApiError.badRequest('Guild ID required'); }
 
-        await voiceService.leaveChannel(guildId);
+    await voiceService.leaveChannel(guildId);
 
-        res.json({ success: true, message: 'Left voice channel' });
-    } catch (error) {
-        next(error);
-    }
-});
+    res.json({ success: true, message: 'Left voice channel' });
+}));
 
 /**
  * Play audio
  * POST /api/guilds/:guildId/voice/play
  */
-router.post('/play', async (req: any, res, next) => {
-    try {
-        const { guildId } = req.params;
-        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
+router.post('/play', asyncHandler(async (req, res) => {
+    const { guildId } = req.params;
+    if (!guildId) { throw ApiError.badRequest('Guild ID required'); }
 
-        const { url } = PlayAudioSchema.parse(req.body);
+    const { url } = PlayAudioSchema.parse(req.body);
 
-        await voiceService.playAudio(guildId, url);
+    await voiceService.playAudio(guildId, url);
 
-        res.json({ success: true, message: 'Started playing audio' });
-    } catch (error) {
-        next(error);
-    }
-});
+    res.json({ success: true, message: 'Started playing audio' });
+}));
 
 /**
  * Get voice status
  * GET /api/guilds/:guildId/voice
  */
-router.get('/', (req: any, res, next) => {
-    try {
-        const { guildId } = req.params;
-        if (!guildId) {throw ApiError.badRequest('Guild ID required');}
+// Note: This is synchronous, but we use asyncHandler for consistency/error catching if it were to change
+router.get('/', asyncHandler(async (req, res) => {
+    const { guildId } = req.params;
+    if (!guildId) { throw ApiError.badRequest('Guild ID required'); }
 
-        const status = voiceService.getVoiceStatus(guildId);
+    const status = voiceService.getVoiceStatus(guildId);
 
-        res.json({ success: true, data: status });
-    } catch (error) {
-        next(error);
-    }
-});
+    res.json({ success: true, data: status });
+}));
 
 export default router;

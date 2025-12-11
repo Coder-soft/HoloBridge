@@ -3,6 +3,7 @@ import { memberService } from '../../discord/services/index.js';
 import { BanMemberSchema, ModifyRolesSchema, SetNicknameSchema } from '../../types/api.types.js';
 import type { ApiResponse } from '../../types/api.types.js';
 import type { SerializedMember } from '../../types/discord.types.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
 const router = Router({ mergeParams: true });
 
@@ -17,20 +18,20 @@ function getParams(req: Request): { guildId: string; userId?: string } {
  * GET /api/guilds/:guildId/members
  * List all members in a guild
  */
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
     const limit = parseInt(req.query['limit'] as string) || 1000;
 
     const members = await memberService.getMembers(guildId, limit);
     const response: ApiResponse<SerializedMember[]> = { success: true, data: members };
     res.json(response);
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/members/search
  * Search members by query
  */
-router.get('/search', async (req, res) => {
+router.get('/search', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
     const query = req.query['q'] as string;
     const limit = parseInt(req.query['limit'] as string) || 20;
@@ -42,13 +43,13 @@ router.get('/search', async (req, res) => {
 
     const members = await memberService.searchMembers(guildId, query, limit);
     res.json({ success: true, data: members });
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/members/:userId
  * Get a specific member
  */
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
     const member = await memberService.getMember(guildId, userId ?? '');
 
@@ -58,13 +59,13 @@ router.get('/:userId', async (req, res) => {
     }
 
     res.json({ success: true, data: member });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/members/:userId/kick
  * Kick a member
  */
-router.post('/:userId/kick', async (req, res) => {
+router.post('/:userId/kick', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
     const reason = req.body?.reason as string | undefined;
 
@@ -76,13 +77,13 @@ router.post('/:userId/kick', async (req, res) => {
     }
 
     res.json({ success: true, data: { kicked: true } });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/members/:userId/ban
  * Ban a member
  */
-router.post('/:userId/ban', async (req, res) => {
+router.post('/:userId/ban', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
 
     const result = BanMemberSchema.safeParse(req.body);
@@ -99,13 +100,13 @@ router.post('/:userId/ban', async (req, res) => {
     }
 
     res.json({ success: true, data: { banned: true } });
-});
+}));
 
 /**
  * DELETE /api/guilds/:guildId/bans/:userId
  * Unban a user
  */
-router.delete('/bans/:userId', async (req, res) => {
+router.delete('/bans/:userId', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
     const reason = req.body?.reason as string | undefined;
 
@@ -117,13 +118,13 @@ router.delete('/bans/:userId', async (req, res) => {
     }
 
     res.json({ success: true, data: { unbanned: true } });
-});
+}));
 
 /**
  * PATCH /api/guilds/:guildId/members/:userId/nickname
  * Set or clear a member's nickname
  */
-router.patch('/:userId/nickname', async (req, res) => {
+router.patch('/:userId/nickname', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
 
     const result = SetNicknameSchema.safeParse(req.body);
@@ -140,13 +141,13 @@ router.patch('/:userId/nickname', async (req, res) => {
     }
 
     res.json({ success: true, data: member });
-});
+}));
 
 /**
  * PATCH /api/guilds/:guildId/members/:userId/roles
  * Modify member roles (add/remove)
  */
-router.patch('/:userId/roles', async (req, res) => {
+router.patch('/:userId/roles', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
 
     const result = ModifyRolesSchema.safeParse(req.body);
@@ -163,13 +164,13 @@ router.patch('/:userId/roles', async (req, res) => {
     }
 
     res.json({ success: true, data: member });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/members/:userId/timeout
  * Timeout a member
  */
-router.post('/:userId/timeout', async (req, res) => {
+router.post('/:userId/timeout', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
     const { duration, reason } = req.body as { duration?: number; reason?: string };
 
@@ -186,13 +187,13 @@ router.post('/:userId/timeout', async (req, res) => {
     }
 
     res.json({ success: true, data: member });
-});
+}));
 
 /**
  * DELETE /api/guilds/:guildId/members/:userId/timeout
  * Remove timeout from a member
  */
-router.delete('/:userId/timeout', async (req, res) => {
+router.delete('/:userId/timeout', asyncHandler(async (req, res) => {
     const { guildId, userId } = getParams(req);
     const reason = req.body?.reason as string | undefined;
 
@@ -204,6 +205,6 @@ router.delete('/:userId/timeout', async (req, res) => {
     }
 
     res.json({ success: true, data: member });
-});
+}));
 
 export default router;

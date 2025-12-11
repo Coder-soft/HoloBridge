@@ -1,6 +1,7 @@
 import { Router, type Request } from 'express';
 import { roleService } from '../../discord/services/index.js';
 import { CreateRoleSchema, EditRoleSchema } from '../../types/api.types.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
 const router = Router({ mergeParams: true });
 
@@ -15,17 +16,17 @@ function getParams(req: Request): { guildId: string; roleId?: string } {
  * GET /api/guilds/:guildId/roles
  * Get all roles in a guild
  */
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
     const roles = await roleService.getRoles(guildId);
     res.json({ success: true, data: roles });
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/roles/search
  * Search for a role by name
  */
-router.get('/search', async (req, res) => {
+router.get('/search', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
     const name = req.query['name'] as string;
 
@@ -42,13 +43,13 @@ router.get('/search', async (req, res) => {
     }
 
     res.json({ success: true, data: role });
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/roles/:roleId
  * Get a specific role
  */
-router.get('/:roleId', async (req, res) => {
+router.get('/:roleId', asyncHandler(async (req, res) => {
     const { guildId, roleId } = getParams(req);
     const role = await roleService.getRole(guildId, roleId ?? '');
 
@@ -58,13 +59,13 @@ router.get('/:roleId', async (req, res) => {
     }
 
     res.json({ success: true, data: role });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/roles
  * Create a new role
  */
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
 
     const result = CreateRoleSchema.safeParse(req.body);
@@ -81,13 +82,13 @@ router.post('/', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: role });
-});
+}));
 
 /**
  * PATCH /api/guilds/:guildId/roles/:roleId
  * Edit a role
  */
-router.patch('/:roleId', async (req, res) => {
+router.patch('/:roleId', asyncHandler(async (req, res) => {
     const { guildId, roleId } = getParams(req);
 
     const result = EditRoleSchema.safeParse(req.body);
@@ -104,13 +105,13 @@ router.patch('/:roleId', async (req, res) => {
     }
 
     res.json({ success: true, data: role });
-});
+}));
 
 /**
  * DELETE /api/guilds/:guildId/roles/:roleId
  * Delete a role
  */
-router.delete('/:roleId', async (req, res) => {
+router.delete('/:roleId', asyncHandler(async (req, res) => {
     const { guildId, roleId } = getParams(req);
     const reason = req.body?.reason as string | undefined;
 
@@ -122,23 +123,23 @@ router.delete('/:roleId', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true } });
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/roles/:roleId/members
  * Get members with a specific role
  */
-router.get('/:roleId/members', async (req, res) => {
+router.get('/:roleId/members', asyncHandler(async (req, res) => {
     const { guildId, roleId } = getParams(req);
     const memberIds = await roleService.getRoleMembers(guildId, roleId ?? '');
     res.json({ success: true, data: memberIds });
-});
+}));
 
 /**
  * PATCH /api/guilds/:guildId/roles/:roleId/permissions
  * Set role permissions
  */
-router.patch('/:roleId/permissions', async (req, res) => {
+router.patch('/:roleId/permissions', asyncHandler(async (req, res) => {
     const { guildId, roleId } = getParams(req);
     const { permissions } = req.body as { permissions?: string };
 
@@ -155,6 +156,6 @@ router.patch('/:roleId/permissions', async (req, res) => {
     }
 
     res.json({ success: true, data: { updated: true } });
-});
+}));
 
 export default router;
