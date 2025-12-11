@@ -1,13 +1,15 @@
 import { Router, type Request } from 'express';
 import { commandService } from '../../discord/services/index.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { CreateApplicationCommandSchema, EditApplicationCommandSchema } from '../../types/api.types.js';
 
 const router = Router({ mergeParams: true });
 
 // Helper to get merged params
-function getParams(req: Request): { guildId: string; commandId?: string } {
+// Helper to get merged params
+function getParams(req: Request): { guildId?: string; commandId?: string } {
     const params = req.params as { guildId?: string; commandId?: string };
-    return { guildId: params.guildId ?? '', commandId: params.commandId };
+    return { guildId: params.guildId, commandId: params.commandId };
 }
 
 // ============================================================================
@@ -18,18 +20,26 @@ function getParams(req: Request): { guildId: string; commandId?: string } {
  * GET /api/guilds/:guildId/commands
  * Get all guild-specific application commands
  */
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
+    if (!guildId) {
+        res.status(400).json({ success: false, error: 'Guild ID is required', code: 'MISSING_GUILD_ID' });
+        return;
+    }
     const commands = await commandService.getGuildCommands(guildId);
     res.json({ success: true, data: commands });
-});
+}));
 
 /**
  * GET /api/guilds/:guildId/commands/:commandId
  * Get a specific guild application command
  */
-router.get('/:commandId', async (req, res) => {
+router.get('/:commandId', asyncHandler(async (req, res) => {
     const { guildId, commandId } = getParams(req);
+    if (!guildId) {
+        res.status(400).json({ success: false, error: 'Guild ID is required', code: 'MISSING_GUILD_ID' });
+        return;
+    }
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
         return;
@@ -43,14 +53,18 @@ router.get('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: command });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/commands
  * Create a new guild-specific application command
  */
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
     const { guildId } = getParams(req);
+    if (!guildId) {
+        res.status(400).json({ success: false, error: 'Guild ID is required', code: 'MISSING_GUILD_ID' });
+        return;
+    }
 
     const result = CreateApplicationCommandSchema.safeParse(req.body);
     if (!result.success) {
@@ -66,14 +80,18 @@ router.post('/', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: command });
-});
+}));
 
 /**
  * PATCH /api/guilds/:guildId/commands/:commandId
  * Edit a guild-specific application command
  */
-router.patch('/:commandId', async (req, res) => {
+router.patch('/:commandId', asyncHandler(async (req, res) => {
     const { guildId, commandId } = getParams(req);
+    if (!guildId) {
+        res.status(400).json({ success: false, error: 'Guild ID is required', code: 'MISSING_GUILD_ID' });
+        return;
+    }
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
         return;
@@ -93,14 +111,18 @@ router.patch('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: command });
-});
+}));
 
 /**
  * DELETE /api/guilds/:guildId/commands/:commandId
  * Delete a guild-specific application command
  */
-router.delete('/:commandId', async (req, res) => {
+router.delete('/:commandId', asyncHandler(async (req, res) => {
     const { guildId, commandId } = getParams(req);
+    if (!guildId) {
+        res.status(400).json({ success: false, error: 'Guild ID is required', code: 'MISSING_GUILD_ID' });
+        return;
+    }
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
         return;
@@ -114,6 +136,6 @@ router.delete('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true } });
-});
+}));
 
 export default router;

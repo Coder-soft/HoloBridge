@@ -1,5 +1,6 @@
 import { Router, type Request } from 'express';
 import { commandService } from '../../discord/services/index.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 import { CreateApplicationCommandSchema, EditApplicationCommandSchema } from '../../types/api.types.js';
 
 const router = Router({ mergeParams: true });
@@ -18,16 +19,16 @@ function getParams(req: Request): { guildId?: string; commandId?: string } {
  * GET /api/commands
  * Get all global application commands
  */
-router.get('/', async (_req, res) => {
+router.get('/', asyncHandler(async (_req, res) => {
     const commands = await commandService.getGlobalCommands();
     res.json({ success: true, data: commands });
-});
+}));
 
 /**
  * GET /api/commands/:commandId
  * Get a specific global application command
  */
-router.get('/:commandId', async (req, res) => {
+router.get('/:commandId', asyncHandler(async (req, res) => {
     const { commandId } = getParams(req);
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
@@ -42,13 +43,13 @@ router.get('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: command });
-});
+}));
 
 /**
  * POST /api/commands
  * Create a new global application command
  */
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
     const result = CreateApplicationCommandSchema.safeParse(req.body);
     if (!result.success) {
         res.status(400).json({ success: false, error: 'Invalid request body', details: result.error.issues });
@@ -63,13 +64,13 @@ router.post('/', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: command });
-});
+}));
 
 /**
  * PATCH /api/commands/:commandId
  * Edit a global application command
  */
-router.patch('/:commandId', async (req, res) => {
+router.patch('/:commandId', asyncHandler(async (req, res) => {
     const { commandId } = getParams(req);
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
@@ -90,13 +91,13 @@ router.patch('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: command });
-});
+}));
 
 /**
  * DELETE /api/commands/:commandId
  * Delete a global application command
  */
-router.delete('/:commandId', async (req, res) => {
+router.delete('/:commandId', asyncHandler(async (req, res) => {
     const { commandId } = getParams(req);
     if (!commandId) {
         res.status(400).json({ success: false, error: 'Command ID is required', code: 'MISSING_COMMAND_ID' });
@@ -111,6 +112,6 @@ router.delete('/:commandId', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true } });
-});
+}));
 
 export default router;

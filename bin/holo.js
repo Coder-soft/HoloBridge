@@ -34,17 +34,19 @@ async function commandStart(args) {
     const command = isWatch ? 'npm' : 'node';
     const cmdArgs = isWatch ? ['run', 'dev'] : ['dist/index.js'];
 
-    // If watching, we don't want to hide output behind a spinner forever
-    if (isWatch) {
-        spinner.info(chalk.yellow('Watch mode enabled. Output will stream below:'));
-    } else {
-        spinner.succeed(chalk.green('Initialization complete. Starting process...'));
-    }
-
     const child = spawn(command, cmdArgs, {
         cwd: ROOT_DIR,
         stdio: 'inherit',
         shell: true,
+    });
+
+    child.on('spawn', () => {
+        // If watching, we don't want to hide output behind a spinner forever
+        if (isWatch) {
+            spinner.info(chalk.yellow('Watch mode enabled. Output will stream below:'));
+        } else {
+            spinner.succeed(chalk.green('Initialization complete. Starting process...'));
+        }
     });
 
     child.on('error', (err) => {
@@ -69,10 +71,10 @@ async function commandDoctor() {
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0], 10);
 
-    if (majorVersion >= 18) {
-        spinner.succeed(`Node.js ${chalk.green(nodeVersion)} (>= 18 required)`);
+    if (majorVersion >= 20) {
+        spinner.succeed(`Node.js ${chalk.green(nodeVersion)} (>= 20 required)`);
     } else {
-        spinner.fail(`Node.js ${chalk.red(nodeVersion)} (>= 18 required)`);
+        spinner.fail(`Node.js ${chalk.red(nodeVersion)} (>= 20 required)`);
         hasErrors = true;
     }
 
