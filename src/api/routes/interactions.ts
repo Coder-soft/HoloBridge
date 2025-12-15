@@ -56,8 +56,8 @@ router.post('/callback', async (req, res, next) => {
             case 'update':
                 body = { type: 7, data: data };
                 break;
-            case 'update':
-                body = { type: 7, data: data };
+            case 'modal':
+                body = { type: 9, data: data };
                 break;
             case 'modal':
                 body = { type: 9, data: data };
