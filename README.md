@@ -68,6 +68,7 @@ API_KEY=your_secure_api_key
 
 # Optional
 PORT=3000
+HOST=0.0.0.0
 DEBUG=false
 PLUGINS_ENABLED=true
 RATE_LIMIT_ENABLED=true
