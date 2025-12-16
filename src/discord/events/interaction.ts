@@ -24,7 +24,25 @@ export async function handleInteractionCreate(
         return;
     }
 
-    const payload: any = {
+    const payload: {
+        id: string;
+        applicationId: string;
+        type: number;
+        token: string;
+        guildId: string | null;
+        channelId: string | null;
+        user: {
+            id: string;
+            username: string;
+            discriminator: string;
+            avatar: string | null;
+        };
+        customId: string;
+        createdAt: string;
+        componentType?: number;
+        values?: string[];
+        fields?: Record<string, string>;
+    } = {
         id: interaction.id,
         applicationId: interaction.applicationId,
         type: interaction.type,
