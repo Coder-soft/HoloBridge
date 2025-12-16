@@ -10,7 +10,7 @@ const InteractionCallbackSchema = z.object({
     interactionId: z.string(),
     token: z.string(),
     type: z.enum(['reply', 'defer', 'update', 'deferUpdate', 'modal']),
-    data: z.any().optional(), // Flexible data based on response type
+    data: z.unknown().optional(), // Flexible data based on response type
 });
 
 /**
@@ -34,7 +34,7 @@ router.post('/callback', async (req, res, next) => {
 
         const responseUrl = `https://discord.com/api/v10/interactions/${interactionId}/${token}/callback`;
 
-        let body: any;
+        let body: { type: number; data?: unknown };
 
         // Map abstract types to Discord API response types
         // 4: ChannelMessageWithSource (reply)
