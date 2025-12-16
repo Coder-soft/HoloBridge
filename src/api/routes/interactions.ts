@@ -59,9 +59,6 @@ router.post('/callback', async (req, res, next) => {
             case 'modal':
                 body = { type: 9, data: data };
                 break;
-            case 'modal':
-                body = { type: 9, data: data };
-                break;
         }
 
         const discordRes = await fetch(responseUrl, {
