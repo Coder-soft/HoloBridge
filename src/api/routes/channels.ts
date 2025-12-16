@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { channelService } from '../../discord/services/index.js';
 import { CreateChannelSchema, EditChannelSchema, CreateThreadSchema } from '../../types/api.types.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
 const router = Router();
 
@@ -8,9 +9,9 @@ const router = Router();
  * GET /api/channels/:channelId
  * Get a channel by ID
  */
-router.get('/:channelId', async (req, res) => {
+router.get('/:channelId', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const channel = await channelService.getChannel(channelId as string);
+    const channel = await channelService.getChannel(channelId);
 
     if (!channel) {
         res.status(404).json({ success: false, error: 'Channel not found', code: 'CHANNEL_NOT_FOUND' });
@@ -18,13 +19,13 @@ router.get('/:channelId', async (req, res) => {
     }
 
     res.json({ success: true, data: channel });
-});
+}));
 
 /**
  * POST /api/guilds/:guildId/channels
  * Create a new channel
  */
-router.post('/guilds/:guildId/channels', async (req, res) => {
+router.post('/guilds/:guildId/channels', asyncHandler(async (req, res) => {
     const { guildId } = req.params;
 
     const result = CreateChannelSchema.safeParse(req.body);
@@ -33,7 +34,7 @@ router.post('/guilds/:guildId/channels', async (req, res) => {
         return;
     }
 
-    const channel = await channelService.createChannel(guildId as string, result.data);
+    const channel = await channelService.createChannel(guildId, result.data);
 
     if (!channel) {
         res.status(400).json({ success: false, error: 'Failed to create channel', code: 'CREATE_FAILED' });
@@ -41,13 +42,13 @@ router.post('/guilds/:guildId/channels', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: channel });
-});
+}));
 
 /**
  * PATCH /api/channels/:channelId
  * Edit a channel
  */
-router.patch('/:channelId', async (req, res) => {
+router.patch('/:channelId', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
 
     const result = EditChannelSchema.safeParse(req.body);
@@ -56,7 +57,7 @@ router.patch('/:channelId', async (req, res) => {
         return;
     }
 
-    const channel = await channelService.editChannel(channelId as string, result.data);
+    const channel = await channelService.editChannel(channelId, result.data);
 
     if (!channel) {
         res.status(400).json({ success: false, error: 'Failed to edit channel', code: 'EDIT_FAILED' });
@@ -64,17 +65,17 @@ router.patch('/:channelId', async (req, res) => {
     }
 
     res.json({ success: true, data: channel });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId
  * Delete a channel
  */
-router.delete('/:channelId', async (req, res) => {
+router.delete('/:channelId', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
     const reason = req.body?.reason as string | undefined;
 
-    const success = await channelService.deleteChannel(channelId as string, reason);
+    const success = await channelService.deleteChannel(channelId, reason);
 
     if (!success) {
         res.status(400).json({ success: false, error: 'Failed to delete channel', code: 'DELETE_FAILED' });
@@ -82,13 +83,13 @@ router.delete('/:channelId', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true } });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/threads
  * Create a thread
  */
-router.post('/:channelId/threads', async (req, res) => {
+router.post('/:channelId/threads', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
     const messageId = req.query['messageId'] as string | undefined;
 
@@ -98,7 +99,7 @@ router.post('/:channelId/threads', async (req, res) => {
         return;
     }
 
-    const thread = await channelService.createThread(channelId as string, result.data, messageId);
+    const thread = await channelService.createThread(channelId, result.data, messageId);
 
     if (!thread) {
         res.status(400).json({ success: false, error: 'Failed to create thread', code: 'THREAD_CREATE_FAILED' });
@@ -106,25 +107,25 @@ router.post('/:channelId/threads', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: thread });
-});
+}));
 
 /**
  * GET /api/channels/:channelId/threads
  * Get all threads in a channel
  */
-router.get('/:channelId/threads', async (req, res) => {
+router.get('/:channelId/threads', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const threads = await channelService.getThreads(channelId as string);
+    const threads = await channelService.getThreads(channelId);
     res.json({ success: true, data: threads });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/archive
  * Archive a thread
  */
-router.post('/:channelId/archive', async (req, res) => {
+router.post('/:channelId/archive', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const success = await channelService.archiveThread(channelId as string, true);
+    const success = await channelService.archiveThread(channelId, true);
 
     if (!success) {
         res.status(400).json({ success: false, error: 'Failed to archive thread', code: 'ARCHIVE_FAILED' });
@@ -132,15 +133,15 @@ router.post('/:channelId/archive', async (req, res) => {
     }
 
     res.json({ success: true, data: { archived: true } });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/archive
  * Unarchive a thread
  */
-router.delete('/:channelId/archive', async (req, res) => {
+router.delete('/:channelId/archive', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const success = await channelService.archiveThread(channelId as string, false);
+    const success = await channelService.archiveThread(channelId, false);
 
     if (!success) {
         res.status(400).json({ success: false, error: 'Failed to unarchive thread', code: 'UNARCHIVE_FAILED' });
@@ -148,15 +149,15 @@ router.delete('/:channelId/archive', async (req, res) => {
     }
 
     res.json({ success: true, data: { archived: false } });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/lock
  * Lock a thread
  */
-router.post('/:channelId/lock', async (req, res) => {
+router.post('/:channelId/lock', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const success = await channelService.lockThread(channelId as string, true);
+    const success = await channelService.lockThread(channelId, true);
 
     if (!success) {
         res.status(400).json({ success: false, error: 'Failed to lock thread', code: 'LOCK_FAILED' });
@@ -164,15 +165,15 @@ router.post('/:channelId/lock', async (req, res) => {
     }
 
     res.json({ success: true, data: { locked: true } });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/lock
  * Unlock a thread
  */
-router.delete('/:channelId/lock', async (req, res) => {
+router.delete('/:channelId/lock', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const success = await channelService.lockThread(channelId as string, false);
+    const success = await channelService.lockThread(channelId, false);
 
     if (!success) {
         res.status(400).json({ success: false, error: 'Failed to unlock thread', code: 'UNLOCK_FAILED' });
@@ -180,17 +181,17 @@ router.delete('/:channelId/lock', async (req, res) => {
     }
 
     res.json({ success: true, data: { locked: false } });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/clone
  * Clone a channel
  */
-router.post('/:channelId/clone', async (req, res) => {
+router.post('/:channelId/clone', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
     const name = req.body?.name as string | undefined;
 
-    const channel = await channelService.cloneChannel(channelId as string, name);
+    const channel = await channelService.cloneChannel(channelId, name);
 
     if (!channel) {
         res.status(400).json({ success: false, error: 'Failed to clone channel', code: 'CLONE_FAILED' });
@@ -198,16 +199,16 @@ router.post('/:channelId/clone', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: channel });
-});
+}));
 
 /**
  * GET /api/channels/:channelId/webhooks
  * Get webhooks for a channel
  */
-router.get('/:channelId/webhooks', async (req, res) => {
+router.get('/:channelId/webhooks', asyncHandler(async (req, res) => {
     const { channelId } = req.params;
-    const webhooks = await channelService.getWebhooks(channelId as string);
+    const webhooks = await channelService.getWebhooks(channelId);
     res.json({ success: true, data: webhooks });
-});
+}));
 
 export default router;

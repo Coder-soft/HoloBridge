@@ -1,6 +1,7 @@
 import { Router, type Request } from 'express';
 import { messageService } from '../../discord/services/index.js';
 import { SendMessageSchema, EditMessageSchema, GetMessagesSchema } from '../../types/api.types.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
 
 /** Route params for message endpoints (merged from parent router) */
 interface MessageParams {
@@ -25,7 +26,7 @@ function getParams(req: Request): { channelId: string; messageId?: string; emoji
  * GET /api/channels/:channelId/messages
  * Get messages from a channel
  */
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const { channelId } = getParams(req);
 
     const result = GetMessagesSchema.safeParse(req.query);
@@ -36,23 +37,23 @@ router.get('/', async (req, res) => {
 
     const messages = await messageService.getMessages(channelId, result.data);
     res.json({ success: true, data: messages });
-});
+}));
 
 /**
  * GET /api/channels/:channelId/messages/pinned
  * Get pinned messages in a channel
  */
-router.get('/pinned', async (req, res) => {
+router.get('/pinned', asyncHandler(async (req, res) => {
     const { channelId } = getParams(req);
     const messages = await messageService.getPinnedMessages(channelId);
     res.json({ success: true, data: messages });
-});
+}));
 
 /**
  * GET /api/channels/:channelId/messages/:messageId
  * Get a specific message
  */
-router.get('/:messageId', async (req, res) => {
+router.get('/:messageId', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
     const message = await messageService.getMessage(channelId, messageId ?? '');
 
@@ -62,13 +63,13 @@ router.get('/:messageId', async (req, res) => {
     }
 
     res.json({ success: true, data: message });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/messages
  * Send a message
  */
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
     const { channelId } = getParams(req);
 
     const result = SendMessageSchema.safeParse(req.body);
@@ -85,13 +86,13 @@ router.post('/', async (req, res) => {
     }
 
     res.status(201).json({ success: true, data: message });
-});
+}));
 
 /**
  * PATCH /api/channels/:channelId/messages/:messageId
  * Edit a message
  */
-router.patch('/:messageId', async (req, res) => {
+router.patch('/:messageId', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const result = EditMessageSchema.safeParse(req.body);
@@ -108,13 +109,13 @@ router.patch('/:messageId', async (req, res) => {
     }
 
     res.json({ success: true, data: message });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/messages/:messageId
  * Delete a message
  */
-router.delete('/:messageId', async (req, res) => {
+router.delete('/:messageId', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const success = await messageService.deleteMessage(channelId, messageId ?? '');
@@ -125,13 +126,13 @@ router.delete('/:messageId', async (req, res) => {
     }
 
     res.json({ success: true, data: { deleted: true } });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/messages/bulk-delete
  * Bulk delete messages
  */
-router.post('/bulk-delete', async (req, res) => {
+router.post('/bulk-delete', asyncHandler(async (req, res) => {
     const { channelId } = getParams(req);
     const { messageIds } = req.body as { messageIds?: string[] };
 
@@ -142,13 +143,13 @@ router.post('/bulk-delete', async (req, res) => {
 
     const result = await messageService.bulkDelete(channelId, messageIds);
     res.json({ success: true, data: result });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/messages/:messageId/reactions/:emoji
  * Add a reaction
  */
-router.post('/:messageId/reactions/:emoji', async (req, res) => {
+router.post('/:messageId/reactions/:emoji', asyncHandler(async (req, res) => {
     const { channelId, messageId, emoji } = getParams(req);
 
     const success = await messageService.addReaction(channelId, messageId ?? '', decodeURIComponent(emoji ?? ''));
@@ -159,13 +160,13 @@ router.post('/:messageId/reactions/:emoji', async (req, res) => {
     }
 
     res.json({ success: true, data: { reacted: true } });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/messages/:messageId/reactions/:emoji
  * Remove a reaction
  */
-router.delete('/:messageId/reactions/:emoji', async (req, res) => {
+router.delete('/:messageId/reactions/:emoji', asyncHandler(async (req, res) => {
     const { channelId, messageId, emoji } = getParams(req);
     const userId = req.query['userId'] as string | undefined;
 
@@ -182,13 +183,13 @@ router.delete('/:messageId/reactions/:emoji', async (req, res) => {
     }
 
     res.json({ success: true, data: { removed: true } });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/messages/:messageId/reactions
  * Remove all reactions from a message
  */
-router.delete('/:messageId/reactions', async (req, res) => {
+router.delete('/:messageId/reactions', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const success = await messageService.removeAllReactions(channelId, messageId ?? '');
@@ -199,13 +200,13 @@ router.delete('/:messageId/reactions', async (req, res) => {
     }
 
     res.json({ success: true, data: { removed: true } });
-});
+}));
 
 /**
  * GET /api/channels/:channelId/messages/:messageId/reactions/:emoji/users
  * Get users who reacted with a specific emoji
  */
-router.get('/:messageId/reactions/:emoji/users', async (req, res) => {
+router.get('/:messageId/reactions/:emoji/users', asyncHandler(async (req, res) => {
     const { channelId, messageId, emoji } = getParams(req);
     const limit = parseInt(req.query['limit'] as string) || 100;
 
@@ -217,13 +218,13 @@ router.get('/:messageId/reactions/:emoji/users', async (req, res) => {
     );
 
     res.json({ success: true, data: users });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/messages/:messageId/pin
  * Pin a message
  */
-router.post('/:messageId/pin', async (req, res) => {
+router.post('/:messageId/pin', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const success = await messageService.pinMessage(channelId, messageId ?? '');
@@ -234,13 +235,13 @@ router.post('/:messageId/pin', async (req, res) => {
     }
 
     res.json({ success: true, data: { pinned: true } });
-});
+}));
 
 /**
  * DELETE /api/channels/:channelId/messages/:messageId/pin
  * Unpin a message
  */
-router.delete('/:messageId/pin', async (req, res) => {
+router.delete('/:messageId/pin', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const success = await messageService.unpinMessage(channelId, messageId ?? '');
@@ -251,13 +252,13 @@ router.delete('/:messageId/pin', async (req, res) => {
     }
 
     res.json({ success: true, data: { unpinned: true } });
-});
+}));
 
 /**
  * POST /api/channels/:channelId/messages/:messageId/crosspost
  * Crosspost a message (for announcement channels)
  */
-router.post('/:messageId/crosspost', async (req, res) => {
+router.post('/:messageId/crosspost', asyncHandler(async (req, res) => {
     const { channelId, messageId } = getParams(req);
 
     const success = await messageService.crosspostMessage(channelId, messageId ?? '');
@@ -268,6 +269,6 @@ router.post('/:messageId/crosspost', async (req, res) => {
     }
 
     res.json({ success: true, data: { crossposted: true } });
-});
+}));
 
 export default router;

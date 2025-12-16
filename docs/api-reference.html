@@ -18,6 +18,7 @@
                 <a href="getting-started.html">Getting Started</a>
                 <a href="api-reference.html" class="active">API Reference</a>
                 <a href="websocket.html">WebSocket</a>
+                <a href="plugins.html">Plugins</a>
                 <a href="security.html">Security</a>
                 <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
             </nav>
@@ -102,6 +103,13 @@
                     <li><a href="#invites">Invites</a></li>
                     <li><a href="#webhooks">Webhooks</a></li>
                     <li><a href="#emojis">Emojis</a></li>
+                </ul>
+                <h4>Commands</h4>
+                <ul>
+                    <li><a href="#get-global-commands">List Global Commands</a></li>
+                    <li><a href="#create-global-command">Create Global Command</a></li>
+                    <li><a href="#get-guild-commands">List Guild Commands</a></li>
+                    <li><a href="#create-guild-command">Create Guild Command</a></li>
                 </ul>
             </aside>
 
@@ -909,6 +917,135 @@
                     <div class="api-section" id="emojis">
                         <h4>Emojis</h4>
                         <p>Endpoints: <code>/api/guilds/:guildId/emojis</code> (GET, POST, PATCH, DELETE)</p>
+                    </div>
+                </section>
+
+                <section id="commands">
+                    <h2>Application Commands (Slash Commands)</h2>
+                    <p>Manage Discord Application Commands (Slash Commands) for your bot. Commands can be global
+                        (available in all guilds) or guild-specific.</p>
+
+                    <div class="api-section" id="get-global-commands">
+                        <h4><span class="method method-get">GET</span> <span class="endpoint">/api/commands</span></h4>
+                        <p>List all global application commands.</p>
+                        <pre><code>curl -H "X-API-Key: your_key" http://localhost:3000/api/commands</code></pre>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/commands/:commandId</span></h4>
+                        <p>Get a specific global command by ID.</p>
+                    </div>
+
+                    <div class="api-section" id="create-global-command">
+                        <h4><span class="method method-post">POST</span> <span class="endpoint">/api/commands</span>
+                        </h4>
+                        <p>Create a new global application command.</p>
+                        <h5>Request Body</h5>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>name</code></td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>Command name (1-32 chars, lowercase)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>description</code></td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>Command description (1-100 chars)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>type</code></td>
+                                    <td>number</td>
+                                    <td>No</td>
+                                    <td>1=CHAT_INPUT (default), 2=USER, 3=MESSAGE</td>
+                                </tr>
+                                <tr>
+                                    <td><code>options</code></td>
+                                    <td>array</td>
+                                    <td>No</td>
+                                    <td>Command options (max 25)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>default_member_permissions</code></td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>Permission bitfield</td>
+                                </tr>
+                                <tr>
+                                    <td><code>dm_permission</code></td>
+                                    <td>boolean</td>
+                                    <td>No</td>
+                                    <td>Allow in DMs</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nsfw</code></td>
+                                    <td>boolean</td>
+                                    <td>No</td>
+                                    <td>Age-restricted command</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h5>Example</h5>
+                        <pre><code>curl -X POST -H "X-API-Key: your_key" -H "Content-Type: application/json" \
+  -d '{"name": "hello", "description": "Says hello"}' \
+  http://localhost:3000/api/commands</code></pre>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/commands/:commandId</span></h4>
+                        <p>Edit a global application command. All fields optional.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/commands/:commandId</span></h4>
+                        <p>Delete a global application command.</p>
+                    </div>
+
+                    <h3>Guild-Specific Commands</h3>
+                    <p>Guild commands are only available in the specified guild. They update instantly (unlike global
+                        commands which can take up to an hour).</p>
+
+                    <div class="api-section" id="get-guild-commands">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/commands</span></h4>
+                        <p>List all commands for a specific guild.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-get">GET</span> <span
+                                class="endpoint">/api/guilds/:guildId/commands/:commandId</span></h4>
+                        <p>Get a specific guild command.</p>
+                    </div>
+
+                    <div class="api-section" id="create-guild-command">
+                        <h4><span class="method method-post">POST</span> <span
+                                class="endpoint">/api/guilds/:guildId/commands</span></h4>
+                        <p>Create a guild-specific command. Same request body as global commands.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-patch">PATCH</span> <span
+                                class="endpoint">/api/guilds/:guildId/commands/:commandId</span></h4>
+                        <p>Edit a guild-specific command.</p>
+                    </div>
+
+                    <div class="api-section">
+                        <h4><span class="method method-delete">DELETE</span> <span
+                                class="endpoint">/api/guilds/:guildId/commands/:commandId</span></h4>
+                        <p>Delete a guild-specific command.</p>
                     </div>
                 </section>
             </div>

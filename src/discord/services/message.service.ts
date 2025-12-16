@@ -7,7 +7,7 @@ import type { SendMessageInput, EditMessageInput, GetMessagesInput } from '../..
 type TextBasedChannel = TextChannel | NewsChannel | ThreadChannel;
 
 function isTextBasedChannel(channel: unknown): channel is TextBasedChannel {
-    if (!channel || typeof channel !== 'object') return false;
+    if (!channel || typeof channel !== 'object') {return false;}
     const ch = channel as { type?: ChannelType };
     return (
         ch.type === ChannelType.GuildText ||
@@ -24,7 +24,7 @@ export class MessageService {
      */
     async getMessages(channelId: string, options?: GetMessagesInput): Promise<SerializedMessage[]> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return [];
+        if (!channel || !isTextBasedChannel(channel)) {return [];}
 
         const messages = await channel.messages.fetch({
             limit: options?.limit ?? 50,
@@ -41,7 +41,7 @@ export class MessageService {
      */
     async getMessage(channelId: string, messageId: string): Promise<SerializedMessage | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return null;
+        if (!channel || !isTextBasedChannel(channel)) {return null;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -56,7 +56,7 @@ export class MessageService {
      */
     async sendMessage(channelId: string, input: SendMessageInput): Promise<SerializedMessage | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return null;
+        if (!channel || !isTextBasedChannel(channel)) {return null;}
 
         try {
             const message = await channel.send({
@@ -88,7 +88,7 @@ export class MessageService {
      */
     async editMessage(channelId: string, messageId: string, input: EditMessageInput): Promise<SerializedMessage | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return null;
+        if (!channel || !isTextBasedChannel(channel)) {return null;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -118,7 +118,7 @@ export class MessageService {
      */
     async deleteMessage(channelId: string, messageId: string, reason?: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -153,7 +153,7 @@ export class MessageService {
      */
     async addReaction(channelId: string, messageId: string, emoji: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -169,7 +169,7 @@ export class MessageService {
      */
     async removeReaction(channelId: string, messageId: string, emoji: string, userId?: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -177,7 +177,7 @@ export class MessageService {
                 (r) => r.emoji.name === emoji || r.emoji.id === emoji || r.emoji.identifier === emoji
             );
 
-            if (!reaction) return false;
+            if (!reaction) {return false;}
 
             if (userId) {
                 await reaction.users.remove(userId);
@@ -195,7 +195,7 @@ export class MessageService {
      */
     async removeAllReactions(channelId: string, messageId: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -211,7 +211,7 @@ export class MessageService {
      */
     async getReactionUsers(channelId: string, messageId: string, emoji: string, limit = 100) {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return [];
+        if (!channel || !isTextBasedChannel(channel)) {return [];}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -219,7 +219,7 @@ export class MessageService {
                 (r) => r.emoji.name === emoji || r.emoji.id === emoji || r.emoji.identifier === emoji
             );
 
-            if (!reaction) return [];
+            if (!reaction) {return [];}
 
             const users = await reaction.users.fetch({ limit });
             return users.map(serializeUser);
@@ -233,7 +233,7 @@ export class MessageService {
      */
     async pinMessage(channelId: string, messageId: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -249,7 +249,7 @@ export class MessageService {
      */
     async unpinMessage(channelId: string, messageId: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return false;
+        if (!channel || !isTextBasedChannel(channel)) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);
@@ -265,7 +265,7 @@ export class MessageService {
      */
     async getPinnedMessages(channelId: string): Promise<SerializedMessage[]> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !isTextBasedChannel(channel)) return [];
+        if (!channel || !isTextBasedChannel(channel)) {return [];}
 
         try {
             const pinned = await channel.messages.fetchPinned();
@@ -280,7 +280,7 @@ export class MessageService {
      */
     async crosspostMessage(channelId: string, messageId: string): Promise<boolean> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || channel.type !== ChannelType.GuildAnnouncement) return false;
+        if (!channel || channel.type !== ChannelType.GuildAnnouncement) {return false;}
 
         try {
             const message = await channel.messages.fetch(messageId);

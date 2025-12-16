@@ -9,7 +9,7 @@ export class WebhookService {
      */
     async getChannelWebhooks(channelId: string): Promise<SerializedWebhook[]> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !('fetchWebhooks' in channel)) return [];
+        if (!channel || !('fetchWebhooks' in channel)) {return [];}
 
         try {
             const webhooks = await channel.fetchWebhooks();
@@ -24,7 +24,7 @@ export class WebhookService {
      */
     async getGuildWebhooks(guildId: string): Promise<SerializedWebhook[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const webhooks = await guild.fetchWebhooks();
@@ -51,7 +51,7 @@ export class WebhookService {
      */
     async createWebhook(channelId: string, data: ChannelWebhookCreateOptions): Promise<SerializedWebhook | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !('createWebhook' in channel)) return null;
+        if (!channel || !('createWebhook' in channel)) {return null;}
 
         try {
             const webhook = await channel.createWebhook(data);

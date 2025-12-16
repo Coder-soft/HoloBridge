@@ -34,7 +34,7 @@ export class InviteService {
      */
     async getGuildInvites(guildId: string): Promise<SerializedInvite[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const invites = await guild.invites.fetch();
         return invites.map(serializeInvite);
@@ -45,7 +45,7 @@ export class InviteService {
      */
     async getChannelInvites(channelId: string): Promise<SerializedInvite[]> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !channel.isTextBased() || !('createInvite' in channel)) return [];
+        if (!channel || !channel.isTextBased() || !('createInvite' in channel)) {return [];}
 
         try {
             const invites = await channel.fetchInvites();
@@ -60,7 +60,7 @@ export class InviteService {
      */
     async createChannelInvite(channelId: string, data: InviteCreateOptions): Promise<SerializedInvite | null> {
         const channel = discordClient.channels.cache.get(channelId);
-        if (!channel || !('createInvite' in channel)) return null;
+        if (!channel || !('createInvite' in channel)) {return null;}
 
         try {
             const invite = await channel.createInvite(data);

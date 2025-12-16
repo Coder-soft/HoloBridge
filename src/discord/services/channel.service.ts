@@ -23,7 +23,7 @@ export class ChannelService {
     async getChannel(channelId: string): Promise<SerializedChannel | null> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel) return null;
+            if (!channel) {return null;}
             return serializeChannel(channel);
         } catch {
             return null;
@@ -35,7 +35,7 @@ export class ChannelService {
      */
     async createChannel(guildId: string, input: CreateChannelInput): Promise<SerializedChannel | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,7 +74,7 @@ export class ChannelService {
     async editChannel(channelId: string, input: EditChannelInput): Promise<SerializedChannel | null> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('edit' in channel)) return null;
+            if (!channel || !('edit' in channel)) {return null;}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const guildChannel = channel as any;
@@ -100,7 +100,7 @@ export class ChannelService {
     async deleteChannel(channelId: string, reason?: string): Promise<boolean> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('delete' in channel)) return false;
+            if (!channel || !('delete' in channel)) {return false;}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (channel as any).delete(reason);
@@ -116,7 +116,7 @@ export class ChannelService {
     async setChannelPosition(channelId: string, position: number): Promise<boolean> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('setPosition' in channel)) return false;
+            if (!channel || !('setPosition' in channel)) {return false;}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (channel as any).setPosition(position);
@@ -132,7 +132,7 @@ export class ChannelService {
     async setChannelParent(channelId: string, parentId: string | null): Promise<boolean> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('setParent' in channel)) return false;
+            if (!channel || !('setParent' in channel)) {return false;}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (channel as any).setParent(parentId);
@@ -148,7 +148,7 @@ export class ChannelService {
     async createThread(channelId: string, input: CreateThreadInput, messageId?: string): Promise<SerializedChannel | null> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel) return null;
+            if (!channel) {return null;}
 
             // Thread from message
             if (messageId && 'messages' in channel) {
@@ -189,7 +189,7 @@ export class ChannelService {
     async getThreads(channelId: string): Promise<SerializedChannel[]> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('threads' in channel)) return [];
+            if (!channel || !('threads' in channel)) {return [];}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const threadableChannel = channel as any;
@@ -207,7 +207,7 @@ export class ChannelService {
     async archiveThread(threadId: string, archived = true): Promise<boolean> {
         try {
             const channel = await discordClient.channels.fetch(threadId);
-            if (!channel || !channel.isThread()) return false;
+            if (!channel || !channel.isThread()) {return false;}
 
             await channel.setArchived(archived);
             return true;
@@ -222,7 +222,7 @@ export class ChannelService {
     async lockThread(threadId: string, locked = true): Promise<boolean> {
         try {
             const channel = await discordClient.channels.fetch(threadId);
-            if (!channel || !channel.isThread()) return false;
+            if (!channel || !channel.isThread()) {return false;}
 
             await channel.setLocked(locked);
             return true;
@@ -237,7 +237,7 @@ export class ChannelService {
     async cloneChannel(channelId: string, name?: string): Promise<SerializedChannel | null> {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('clone' in channel)) return null;
+            if (!channel || !('clone' in channel)) {return null;}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const cloned = await (channel as any).clone({ name });
@@ -253,7 +253,7 @@ export class ChannelService {
     async getWebhooks(channelId: string) {
         try {
             const channel = await discordClient.channels.fetch(channelId);
-            if (!channel || !('fetchWebhooks' in channel)) return [];
+            if (!channel || !('fetchWebhooks' in channel)) {return [];}
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const webhooks = await (channel as any).fetchWebhooks();

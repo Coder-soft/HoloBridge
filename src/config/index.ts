@@ -12,12 +12,13 @@ const apiKeySchema = z.object({
     createdAt: z.coerce.date().optional(),
 });
 
-const configSchema = z.object({
+export const configSchema = z.object({
     discord: z.object({
         token: z.string().min(1, 'Discord token is required'),
     }),
     api: z.object({
         port: z.number().int().positive().default(3000),
+        host: z.string().default('0.0.0.0'),
         // Legacy single key (still supported for backwards compatibility)
         apiKey: z.string().min(1, 'API key is required'),
         // New: Multiple API keys with scopes
@@ -44,6 +45,7 @@ function loadConfig(): Config {
         },
         api: {
             port: parseInt(process.env['PORT'] ?? '3000', 10),
+            host: process.env['HOST'] ?? '0.0.0.0',
             apiKey: process.env['API_KEY'] ?? '',
             // API keys can be loaded from a JSON file or environment variable
             apiKeys: parseApiKeys(process.env['API_KEYS']),
@@ -77,7 +79,7 @@ function loadConfig(): Config {
  * Parse API_KEYS environment variable (JSON array) with schema validation
  */
 function parseApiKeys(envVar: string | undefined): z.infer<typeof apiKeySchema>[] {
-    if (!envVar) return [];
+    if (!envVar) { return []; }
 
     // Parse JSON
     let parsed: unknown;

@@ -68,6 +68,7 @@ API_KEY=your_secure_api_key
 
 # Optional
 PORT=3000
+HOST=0.0.0.0
 DEBUG=false
 PLUGINS_ENABLED=true
 RATE_LIMIT_ENABLED=true
@@ -156,6 +157,12 @@ Responses include rate limit headers:
 | `POST` | `/api/channels/:id/messages` | Send message |
 | `PATCH` | `/api/channels/:id/messages/:msgId` | Edit message |
 | `DELETE` | `/api/channels/:id/messages/:msgId` | Delete message |
+| `GET` | `/api/commands` | List global commands |
+| `POST` | `/api/commands` | Create global command |
+| `PATCH` | `/api/commands/:commandId` | Edit global command |
+| `DELETE` | `/api/commands/:commandId` | Delete global command |
+| `GET` | `/api/guilds/:id/commands` | List guild commands |
+| `POST` | `/api/guilds/:id/commands` | Create guild command |
 | `GET` | `/health` | Health check (no auth) |
 
 ### WebSocket Events

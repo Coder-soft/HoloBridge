@@ -9,7 +9,7 @@ export class StickerService {
      */
     async getGuildStickers(guildId: string): Promise<SerializedSticker[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         const stickers = await guild.stickers.fetch();
         return stickers.map(serializeSticker);
@@ -20,7 +20,7 @@ export class StickerService {
      */
     async getSticker(guildId: string, stickerId: string): Promise<SerializedSticker | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const sticker = await guild.stickers.fetch(stickerId);
@@ -35,7 +35,7 @@ export class StickerService {
      */
     async createSticker(guildId: string, data: GuildStickerCreateOptions): Promise<SerializedSticker | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         const sticker = await guild.stickers.create(data);
         return serializeSticker(sticker);
@@ -46,7 +46,7 @@ export class StickerService {
      */
     async editSticker(guildId: string, stickerId: string, data: GuildStickerEditOptions): Promise<SerializedSticker | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const sticker = await guild.stickers.fetch(stickerId);
@@ -62,7 +62,7 @@ export class StickerService {
      */
     async deleteSticker(guildId: string, stickerId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const sticker = await guild.stickers.fetch(stickerId);

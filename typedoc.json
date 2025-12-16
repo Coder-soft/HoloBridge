@@ -1,0 +1,20 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "./src/index.ts"
+    ],
+    "out": "./docs/typedoc",
+    "exclude": [
+        "**/node_modules/**",
+        "**/dist/**"
+    ],
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "includeVersion": true,
+    "readme": "README.md",
+    "name": "HoloBridge API Documentation",
+    "plugin": [
+        "typedoc-plugin-markdown"
+    ],
+    "theme": "default"
+}

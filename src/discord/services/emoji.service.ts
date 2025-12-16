@@ -9,7 +9,7 @@ export class EmojiService {
      */
     async getGuildEmojis(guildId: string): Promise<SerializedEmoji[]> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return [];
+        if (!guild) {return [];}
 
         try {
             const emojis = await guild.emojis.fetch();
@@ -25,7 +25,7 @@ export class EmojiService {
      */
     async getEmoji(guildId: string, emojiId: string): Promise<SerializedEmoji | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const emoji = await guild.emojis.fetch(emojiId);
@@ -40,7 +40,7 @@ export class EmojiService {
      */
     async createEmoji(guildId: string, data: GuildEmojiCreateOptions): Promise<SerializedEmoji | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const emoji = await guild.emojis.create(data);
@@ -56,7 +56,7 @@ export class EmojiService {
      */
     async editEmoji(guildId: string, emojiId: string, data: GuildEmojiEditOptions): Promise<SerializedEmoji | null> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return null;
+        if (!guild) {return null;}
 
         try {
             const emoji = await guild.emojis.fetch(emojiId);
@@ -72,7 +72,7 @@ export class EmojiService {
      */
     async deleteEmoji(guildId: string, emojiId: string): Promise<boolean> {
         const guild = discordClient.guilds.cache.get(guildId);
-        if (!guild) return false;
+        if (!guild) {return false;}
 
         try {
             const emoji = await guild.emojis.fetch(emojiId);
