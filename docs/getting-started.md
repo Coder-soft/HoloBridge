@@ -116,7 +116,7 @@ Follow these steps to create a Discord bot and invite it to your server:
 4. Copy the generated URL and open it in your browser
 5. Select a server and authorize the bot
 
-> ⚠️ **Important:** Keep your bot token and API key secret. Never commit them to version control.
+> ⚠️ **Important:** Keep your bot token and API key secret. Never commit them to version control
 
 ## Testing the API
 
