@@ -215,7 +215,7 @@ holobridge/
 
 - [Use Cases](USE_CASES.md) - Creative ways to use HoloBridge
 - [Plugin Guide](plugins/README.md) - How to build plugins
-- [Documentation](https://holodocs.pages.dev/) - Full API docs
+- [Documentation](https://ralph-docs.powernplant101-c6b.workers.dev/) - Full API docs
 
 ## License
 
