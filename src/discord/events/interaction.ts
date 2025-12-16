@@ -4,6 +4,8 @@ import {
     type ButtonInteraction,
     type AnySelectMenuInteraction,
     type ModalSubmitInteraction,
+    type ActionRowModalData,
+    type ModalActionRowComponentData,
 } from 'discord.js';
 import type { Server as SocketIOServer } from 'socket.io';
 
@@ -16,11 +18,7 @@ export async function handleInteractionCreate(
     io: SocketIOServer
 ): Promise<void> {
     // Only handle repliable interactions that we want to forward
-    if (
-        !interaction.isButton() &&
-        !interaction.isAnySelectMenu() &&
-        !interaction.isModalSubmit()
-    ) {
+    if (!interaction.isButton() && !interaction.isAnySelectMenu() && !interaction.isModalSubmit()) {
         return;
     }
 
@@ -70,8 +68,8 @@ export async function handleInteractionCreate(
         const fields: Record<string, string> = {};
 
         // Iterate rows to find custom IDs, then fetch values safely
-        interaction.fields.fields.forEach((actionRow: any) => {
-            actionRow.components.forEach((component: any) => {
+        interaction.fields.fields.forEach((actionRow: ActionRowModalData) => {
+            actionRow.components.forEach((component: ModalActionRowComponentData) => {
                 try {
                     const value = interaction.fields.getTextInputValue(component.customId);
                     fields[component.customId] = value;
@@ -80,7 +78,10 @@ export async function handleInteractionCreate(
                     // The original document does not define 'config', so this line is commented out
                     // to ensure syntactical correctness and avoid ReferenceError.
                     // if (config.debug) {
-                    console.warn(`Could not retrieve value for modal field ${component.customId}`, error);
+                    console.warn(
+                        `Could not retrieve value for modal field ${component.customId}`,
+                        error
+                    );
                     // }
                 }
             });
